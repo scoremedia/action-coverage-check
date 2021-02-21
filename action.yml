@@ -1,11 +1,13 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Coverage Check'
+description: 'Github Actions check that computes code coverage and fails the build if coverage drops.'
+author: 'theScore Media'
 inputs:
-  milliseconds: # change this
+  coverage_report_path:
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    description: 'JSON file that contains coverage report'
+  github_token:
+    required: true
+    description: 'Token used to create a check using Github API'
 runs:
   using: 'node12'
   main: 'dist/index.js'
