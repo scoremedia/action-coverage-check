@@ -54,7 +54,7 @@ function computeCoverage(coverageReportPath) {
                     index = coverageMissedEndIndex;
                 }
             }
-            const coverageDroppedMessage = `Coverage dropped to ${computedCoverage}%.`;
+            const coverageDroppedMessage = `Coverage dropped to ${computedCoverage.toFixed(2)}%.`;
             annotations.push({
                 path,
                 start_line: 1,
