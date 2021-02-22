@@ -108,13 +108,14 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__webpack_require__(186));
 const github = __importStar(__webpack_require__(438));
 const computeCoverage_1 = __webpack_require__(572);
+const KEY_COVERAGE_REPORT_PATH = 'coverage_report_path';
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const coverageReportPath = core.getInput('coverage_report_path');
+            const coverageReportPath = core.getInput(KEY_COVERAGE_REPORT_PATH);
             core.info(`Coverage report path: ${coverageReportPath}.`);
             if (!coverageReportPath) {
-                core.setFailed('❌ Coverage report path not provided.');
+                core.setFailed('❌ Coverage report path not provided');
                 return;
             }
             const annotations = yield computeCoverage_1.computeCoverage(coverageReportPath);
@@ -144,12 +145,13 @@ function run() {
             try {
                 const octokit = github.getOctokit(token);
                 yield octokit.checks.create(createCoverageCheckRequest);
-                if (conclusion === 'failure') {
-                    core.setFailed('❌ Missed code coverage');
-                }
+                // Instead of marking the job as failed if 'isSuccessful'
+                // is false, we'll let the coverage check update the status.
             }
             catch (error) {
                 core.error(`❌ Something went wrong: (${error})`);
+                // Fail the build if there was an issue adding the check
+                core.setFailed("❌ Could not create 'Coverage check'");
             }
         }
         catch (error) {
