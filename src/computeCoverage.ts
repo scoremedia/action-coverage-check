@@ -45,6 +45,9 @@ export async function computeCoverage(
 
       for (let index = 0; index < sourceFile.coverage.length; index++) {
         if (sourceFile.coverage[index] === 0) {
+          // coverage array is 0-indexed.
+          // We'll need to adjust these by
+          // +1 to get line numbers.
           const coverageMissedStartIndex = index
           let coverageMissedEndIndex = index
           while (
@@ -56,8 +59,9 @@ export async function computeCoverage(
 
           annotations.push({
             path,
-            start_line: coverageMissedStartIndex,
-            end_line: coverageMissedEndIndex,
+            // Line numbers are 1-indexed
+            start_line: coverageMissedStartIndex + 1,
+            end_line: coverageMissedEndIndex + 1,
             annotation_level: 'failure',
             message: 'Missed coverage'
           })
@@ -70,8 +74,8 @@ export async function computeCoverage(
 
       annotations.push({
         path,
-        start_line: 0,
-        end_line: 0,
+        start_line: 1,
+        end_line: 1,
         annotation_level: 'failure',
         message: coverageDroppedMessage
       })
