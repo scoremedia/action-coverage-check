@@ -34,6 +34,9 @@ function computeCoverage(coverageReportPath) {
             const path = sourceFile.name;
             for (let index = 0; index < sourceFile.coverage.length; index++) {
                 if (sourceFile.coverage[index] === 0) {
+                    // coverage array is 0-indexed.
+                    // We'll need to adjust these by
+                    // +1 to get line numbers.
                     const coverageMissedStartIndex = index;
                     let coverageMissedEndIndex = index;
                     while (coverageMissedEndIndex + 1 < sourceFile.coverage.length &&
@@ -42,8 +45,9 @@ function computeCoverage(coverageReportPath) {
                     }
                     annotations.push({
                         path,
-                        start_line: coverageMissedStartIndex,
-                        end_line: coverageMissedEndIndex,
+                        // Line numbers are 1-indexed
+                        start_line: coverageMissedStartIndex + 1,
+                        end_line: coverageMissedEndIndex + 1,
                         annotation_level: 'failure',
                         message: 'Missed coverage'
                     });
@@ -53,8 +57,8 @@ function computeCoverage(coverageReportPath) {
             const coverageDroppedMessage = `Coverage dropped to ${computedCoverage}%.`;
             annotations.push({
                 path,
-                start_line: 0,
-                end_line: 0,
+                start_line: 1,
+                end_line: 1,
                 annotation_level: 'failure',
                 message: coverageDroppedMessage
             });
@@ -109,6 +113,10 @@ function run() {
         try {
             const coverageReportPath = core.getInput('coverage_report_path');
             core.info(`Coverage report path: ${coverageReportPath}.`);
+            if (!coverageReportPath) {
+                core.setFailed('❌ Coverage report path not provided.');
+                return;
+            }
             const annotations = yield computeCoverage_1.computeCoverage(coverageReportPath);
             const token = core.getInput('github_token') || process.env.GITHUB_TOKEN;
             if (!token) {
@@ -118,18 +126,24 @@ function run() {
             const pullRequest = github.context.payload.pull_request;
             const headSha = (pullRequest && pullRequest.head.sha) || github.context.sha;
             const link = (pullRequest && pullRequest.html_url) || github.context.ref;
-            const conclusion = annotations.length === 0 ? 'success' : 'failure';
+            const isSuccessful = annotations.length === 0;
+            const conclusion = isSuccessful
+                ? 'success'
+                : 'failure';
+            const summary = isSuccessful
+                ? 'Coverage stayed at 100%'
+                : 'Coverage dropped';
             const status = 'completed';
             core.info(`ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha})`);
-            const createCheckRequest = Object.assign(Object.assign({}, github.context.repo), { name: 'Code Coverage', head_sha: headSha, status,
+            const createCoverageCheckRequest = Object.assign(Object.assign({}, github.context.repo), { name: 'Code Coverage', head_sha: headSha, status,
                 conclusion, output: {
-                    title: 'Test title',
-                    summary: 'Test summary',
+                    title: 'Coverage check',
+                    summary,
                     annotations: annotations.slice(0, 50)
                 } });
             try {
                 const octokit = github.getOctokit(token);
-                yield octokit.checks.create(createCheckRequest);
+                yield octokit.checks.create(createCoverageCheckRequest);
                 if (conclusion === 'failure') {
                     core.setFailed('❌ Missed code coverage');
                 }
