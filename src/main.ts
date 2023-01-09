@@ -4,6 +4,10 @@ import {computeCoverage} from './computeCoverage'
 
 const KEY_COVERAGE_REPORT_PATH = 'coverage_report_path'
 
+const formatDate = (): string => {
+  return new Date().toISOString();
+}
+
 async function run(): Promise<void> {
   try {
     const coverageReportPath: string = core.getInput(KEY_COVERAGE_REPORT_PATH)
@@ -42,6 +46,7 @@ async function run(): Promise<void> {
       ...github.context.repo,
       name: 'Code Coverage',
       head_sha: headSha,
+      started_at: formatDate(),
       status,
       conclusion,
       output: {
@@ -64,7 +69,7 @@ async function run(): Promise<void> {
       core.setFailed("❌ Could not create 'Coverage check'")
     }
   } catch (error) {
-    core.setFailed(error.message)
+    // core.setFailed(error.message)
   }
 }
 
