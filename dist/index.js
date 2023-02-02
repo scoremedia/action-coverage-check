@@ -148,9 +148,7 @@ function run() {
                     summary,
                     annotations: annotations.slice(0, 50)
                 } });
-            const octokit = new Octokit({
-                auth: token,
-            });
+            const octokit = github.getOctokit(token);
             const checkRequest = yield octokit.checks.create(createCheckRequest);
             if (pullRequest) {
                 const { repo: { repo: repoName, owner: repoOwner }, runId: runId } = github.context;
@@ -171,11 +169,11 @@ function run() {
                 if (!isSuccessful) {
                     const checkId = checkRequest.data.id;
                     // Create comment
-                    yield octokit.issues.createComment(Object.assign(Object.assign({}, defaultParameter), { issue_number: pullRequest.number, body: "Uh-oh! Coverage fell: https://github.com/" + repoOwner + "/" + repoName + "/runs/" + checkId + " <!--  " + IDENTIFIER + " -->" }));
+                    yield octokit.issues.createComment(Object.assign(Object.assign({}, defaultParameter), { issue_number: pullRequest.number, body: "Uh-oh! Coverage dropped: https://github.com/" + repoOwner + "/" + repoName + "/runs/" + checkId + " <!--  " + IDENTIFIER + " -->" }));
                 }
             }
             if (!isSuccessful) {
-                core.setFailed('❌ Coverage fell');
+                core.setFailed('❌ Coverage dropped');
             }
         }
         catch (error) {
