@@ -53,9 +53,7 @@ async function run(): Promise<void> {
       }
     }
 
-    const octokit = new Octokit({
-        auth: token,
-    });
+    const octokit = github.getOctokit(token)
     const checkRequest = await octokit.checks.create(createCheckRequest);
 
     if (pullRequest) {
@@ -89,13 +87,12 @@ async function run(): Promise<void> {
             await octokit.issues.createComment({
                 ...defaultParameter,
                 issue_number: pullRequest.number,
-                body: "Uh-oh! Coverage fell: https://github.com/" + repoOwner + "/" + repoName + "/runs/" + checkId + " <!--  " + IDENTIFIER + " -->"
+                body: "Uh-oh! Coverage dropped: https://github.com/" + repoOwner + "/" + repoName + "/runs/" + checkId + " <!--  " + IDENTIFIER + " -->"
             })
         }
     }
-
     if (!isSuccessful) {
-      core.setFailed('❌ Coverage fell')
+      core.setFailed('❌ Coverage dropped')
     }
   } catch (error) {
     core.setFailed(error.message)
