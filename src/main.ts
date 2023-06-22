@@ -71,7 +71,7 @@ async function run(): Promise<void> {
             issue_number: pullRequest.number
         })
         const targetComment = comments.find(c => {
-            return c.body.includes(IDENTIFIER)
+            return c?.body?.includes(IDENTIFIER)
         })
         // Delete previous comment if exist
         if (targetComment) {
@@ -83,6 +83,23 @@ async function run(): Promise<void> {
         }
         if (!isSuccessful) {
             const checkId = checkRequest.data.id
+            let commentBody = ""
+            commentBody += "Uh-oh! Coverage dropped: https://github.com/" + repoOwner + "/" + repoName + "/runs/" + checkId + "\n"
+            commentBody += "<details>" + "\n"
+            commentBody += "<summary>Details</summary>" + "\n"
+            commentBody += "```" + "\n"
+            annotations.forEach( (annotation) => {
+              commentBody += "-----" + "\n"
+              commentBody += "- path: " + annotation.path + "." + "\n"
+              commentBody += "- start_line: " + annotation.start_line + "." + "\n"
+              commentBody += "- end_line: " + annotation.end_line + "." + "\n"
+              commentBody += "- annotation_level: " + annotation.annotation_level + "." + "\n"
+              commentBody += "- message: " + annotation.message + "." + "\n"
+              commentBody += "-----" + "\n"
+            })
+            commentBody += "```" + "\n"
+            commentBody += "</details>" + "\n"
+            commentBody += "<!--  " + IDENTIFIER + " -->"
             // Create comment
             await octokit.issues.createComment({
                 ...defaultParameter,
@@ -94,7 +111,7 @@ async function run(): Promise<void> {
     if (!isSuccessful) {
       core.setFailed('❌ Coverage dropped')
     }
-  } catch (error) {
+  } catch (error: any) {
     core.setFailed(error.message)
   }
 }
