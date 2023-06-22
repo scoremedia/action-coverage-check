@@ -1,10 +1,9 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-const { Octokit } = require("@octokit/rest");
 import {computeCoverage} from './computeCoverage'
 
 const KEY_COVERAGE_REPORT_PATH = 'coverage_report_path'
-const IDENTIFIER = "513410c6-a258-11ed-a8fc-0242ac120002"
+const IDENTIFIER = '513410c6-a258-11ed-a8fc-0242ac120002'
 
 async function run(): Promise<void> {
   try {
@@ -54,59 +53,64 @@ async function run(): Promise<void> {
     }
 
     const octokit = github.getOctokit(token)
-    const checkRequest = await octokit.checks.create(createCheckRequest);
+    const checkRequest = await octokit.checks.create(createCheckRequest)
 
     if (pullRequest) {
-        const {
-            repo: {repo: repoName, owner: repoOwner},
-            runId: runId
-        } = github.context
-        const defaultParameter = {
-            repo: repoName,
-            owner: repoOwner
-        }
-        // Find unique comments
-        const {data: comments} = await octokit.issues.listComments({
-            ...defaultParameter,
-            issue_number: pullRequest.number
+      const {
+        repo: {repo: repoName, owner: repoOwner}
+      } = github.context
+      const defaultParameter = {
+        repo: repoName,
+        owner: repoOwner
+      }
+      // Find unique comments
+      const {data: comments} = await octokit.issues.listComments({
+        ...defaultParameter,
+        issue_number: pullRequest.number
+      })
+      const targetComment = comments.find(c => {
+        return c?.body?.includes(IDENTIFIER)
+      })
+      // Delete previous comment if exist
+      if (targetComment) {
+        await octokit.issues.deleteComment({
+          ...defaultParameter,
+          comment_id: targetComment.id
         })
-        const targetComment = comments.find(c => {
-            return c.body.includes(IDENTIFIER)
+        core.info(
+          'Comment successfully delete for id: ${String(targetComment.id)}'
+        )
+      }
+      if (!isSuccessful) {
+        const checkId = checkRequest.data.id
+        let commentBody = ''
+        commentBody +=
+          'Uh-oh! Coverage dropped: ' +
+          'https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}' +
+          '\n'
+        commentBody += '<details>' + '\n'
+        commentBody += '<summary>Details</summary>' + '\n'
+        commentBody += '```' + '\n'
+        annotations.forEach(annotation => {
+          commentBody += '-----' + '\n'
+          commentBody += '- path: ' + annotation.path + '.' + '\n'
+          commentBody += '- start_line: ' + annotation.start_line + '.' + '\n'
+          commentBody += '- end_line: ' + annotation.end_line + '.' + '\n'
+          commentBody +=
+            '- annotation_level: ' + annotation.annotation_level + '.' + '\n'
+          commentBody += '- message: ' + annotation.message + '.' + '\n'
+          commentBody += '-----' + '\n'
         })
-        // Delete previous comment if exist
-        if (targetComment) {
-            await octokit.issues.deleteComment({
-                ...defaultParameter,
-                comment_id: targetComment.id
-            })
-            core.info("Comment successfully delete for id: " + targetComment.id)
-        }
-        if (!isSuccessful) {
-            const checkId = checkRequest.data.id
-            let commentBody = ""
-            commentBody += "Uh-oh! Coverage dropped: https://github.com/" + repoOwner + "/" + repoName + "/runs/" + checkId + "\n"
-            commentBody += "<details>" + "\n"
-            commentBody += "<summary>Details</summary>" + "\n"
-            commentBody += "```" + "\n"
-            annotations.forEach( (annotation) => {
-              commentBody += "-----" + "\n"
-              commentBody += "- path: " + annotation.path + "." + "\n"
-              commentBody += "- start_line: " + annotation.start_line + "." + "\n"
-              commentBody += "- end_line: " + annotation.end_line + "." + "\n"
-              commentBody += "- annotation_level: " + annotation.annotation_level + "." + "\n"
-              commentBody += "- message: " + annotation.message + "." + "\n"
-              commentBody += "-----" + "\n"
-            })
-            commentBody += "```" + "\n"
-            commentBody += "</details>" + "\n"
-            commentBody += "<!--  " + IDENTIFIER + " -->"
-            // Create comment
-            await octokit.issues.createComment({
-                ...defaultParameter,
-                issue_number: pullRequest.number,
-                body: commentBody
-            })
-        }
+        commentBody += '```' + '\n'
+        commentBody += '</details>' + '\n'
+        commentBody += '<!--  ' + IDENTIFIER + ' -->'
+        // Create comment
+        await octokit.issues.createComment({
+          ...defaultParameter,
+          issue_number: pullRequest.number,
+          body: commentBody
+        })
+      }
     }
     if (!isSuccessful) {
       core.setFailed('❌ Coverage dropped')
