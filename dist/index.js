@@ -107,7 +107,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__webpack_require__(2186));
 const github = __importStar(__webpack_require__(5438));
-// const {Octokit} = require('@octokit/rest')
 const computeCoverage_1 = __webpack_require__(4572);
 const KEY_COVERAGE_REPORT_PATH = 'coverage_report_path';
 const IDENTIFIER = '513410c6-a258-11ed-a8fc-0242ac120002';
@@ -147,9 +146,7 @@ function run() {
             const octokit = github.getOctokit(token);
             const checkRequest = yield octokit.checks.create(createCheckRequest);
             if (pullRequest) {
-                const { repo: { repo: repoName, owner: repoOwner }
-                // runId: runId
-                 } = github.context;
+                const { repo: { repo: repoName, owner: repoOwner } } = github.context;
                 const defaultParameter = {
                     repo: repoName,
                     owner: repoOwner
