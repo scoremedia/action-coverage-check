@@ -172,7 +172,7 @@ function run() {
                     commentBody += '<details>' + '\n';
                     commentBody += '<summary>Details</summary>' + '\n';
                     commentBody += '```' + '\n';
-                    annotations.forEach(annotation => {
+                    annotations.slice(0, 10).forEach(annotation => {
                         commentBody += '-----' + '\n';
                         commentBody += '- path: ' + annotation.path + '.' + '\n';
                         commentBody += '- start_line: ' + annotation.start_line + '.' + '\n';
