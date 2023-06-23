@@ -39,21 +39,30 @@ async function run(): Promise<void> {
       `ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha})`
     )
 
-    const createCheckRequest = {
+    let outputTitle = ''
+    if (annotations.length > 50) {
+      outputTitle += '50 of $String($annotations.length)'
+    } else {
+      outputTitle += '$String($annotations.length)'
+    }
+    outputTitle += ' coverage issues'
+
+    const octokit = github.getOctokit(token)
+
+    // create GitHub pull request Check w/ Annotation
+    // https://docs.github.com/en/rest/checks/runs#create-a-check-run
+    const checkRequest = await octokit.checks.create({
       ...github.context.repo,
       name: 'Code Coverage',
       head_sha: headSha,
       status,
       conclusion,
       output: {
-        title: 'Coverage check',
+        title: outputTitle,
         summary,
         annotations: annotations.slice(0, 50)
       }
-    }
-
-    const octokit = github.getOctokit(token)
-    const checkRequest = await octokit.checks.create(createCheckRequest)
+    })
 
     if (pullRequest) {
       const {

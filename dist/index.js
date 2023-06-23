@@ -137,14 +137,23 @@ function run() {
                 : 'Coverage dropped';
             const status = 'completed';
             core.info(`ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha})`);
-            const createCheckRequest = Object.assign(Object.assign({}, github.context.repo), { name: 'Code Coverage', head_sha: headSha, status,
+            let outputTitle = '';
+            if (annotations.length > 50) {
+                outputTitle += '50 of $String($annotations.length)';
+            }
+            else {
+                outputTitle += '$String($annotations.length)';
+            }
+            outputTitle += ' coverage issues';
+            const octokit = github.getOctokit(token);
+            // create GitHub pull request Check w/ Annotation
+            // https://docs.github.com/en/rest/checks/runs#create-a-check-run
+            const checkRequest = yield octokit.checks.create(Object.assign(Object.assign({}, github.context.repo), { name: 'Code Coverage', head_sha: headSha, status,
                 conclusion, output: {
-                    title: 'Coverage check',
+                    title: outputTitle,
                     summary,
                     annotations: annotations.slice(0, 50)
-                } });
-            const octokit = github.getOctokit(token);
-            const checkRequest = yield octokit.checks.create(createCheckRequest);
+                } }));
             if (pullRequest) {
                 const { repo: { repo: repoName, owner: repoOwner } } = github.context;
                 const defaultParameter = {
