@@ -25,7 +25,7 @@ function computeCoverage(coverageReportPath) {
         const coverageDataStr = yield fs_1.promises.readFile(coverageReportPath, 'utf8');
         const coverageData = JSON.parse(coverageDataStr);
         for (const sourceFile of coverageData.source_files) {
-            if (sourceFile.coverage.filter(coverageValue => coverageValue === 0).length >
+            if (sourceFile.coverage.filter(coverageValue => coverageValue === 0).length <
                 0)
                 continue;
             const missed = sourceFile.coverage.filter(coverageValue => coverageValue === 0).length;
