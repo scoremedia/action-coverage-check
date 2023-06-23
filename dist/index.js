@@ -25,7 +25,7 @@ function computeCoverage(coverageReportPath) {
         const coverageDataStr = yield fs_1.promises.readFile(coverageReportPath, 'utf8');
         const coverageData = JSON.parse(coverageDataStr);
         for (const sourceFile of coverageData.source_files) {
-            if (sourceFile.coverage.filter(coverageValue => coverageValue === 0).length <
+            if (sourceFile.coverage.filter(coverageValue => coverageValue === 0).length <=
                 0)
                 continue;
             const missed = sourceFile.coverage.filter(coverageValue => coverageValue === 0).length;
@@ -162,14 +162,14 @@ function run() {
                 // Delete previous comment if exist
                 if (targetComment) {
                     yield octokit.issues.deleteComment(Object.assign(Object.assign({}, defaultParameter), { comment_id: targetComment.id }));
-                    core.info('Comment successfully delete for id: ${String(targetComment.id)}');
+                    core.info(`Comment successfully delete for id: ${String(targetComment.id)}`);
                 }
                 if (!isSuccessful) {
                     const checkId = checkRequest.data.id;
                     let commentBody = '';
                     commentBody +=
                         'Uh-oh! Coverage dropped: ' +
-                            'https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}' +
+                            `https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}` +
                             '\n';
                     // commentBody += '<details>' + '\n'
                     // commentBody += '<summary>Details</summary>' + '\n'

@@ -81,7 +81,7 @@ async function run(): Promise<void> {
           comment_id: targetComment.id
         })
         core.info(
-          'Comment successfully delete for id: ${String(targetComment.id)}'
+          `Comment successfully delete for id: ${String(targetComment.id)}`
         )
       }
       if (!isSuccessful) {
@@ -89,7 +89,7 @@ async function run(): Promise<void> {
         let commentBody = ''
         commentBody +=
           'Uh-oh! Coverage dropped: ' +
-          'https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}' +
+          `https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}` +
           '\n'
         // commentBody += '<details>' + '\n'
         // commentBody += '<summary>Details</summary>' + '\n'

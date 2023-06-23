@@ -33,7 +33,7 @@ export async function computeCoverage(
 
   for (const sourceFile of coverageData.source_files) {
     if (
-      sourceFile.coverage.filter(coverageValue => coverageValue === 0).length <
+      sourceFile.coverage.filter(coverageValue => coverageValue === 0).length <=
       0
     )
       continue
