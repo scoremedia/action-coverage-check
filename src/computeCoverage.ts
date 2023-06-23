@@ -46,7 +46,7 @@ export async function computeCoverage(
     ).length
     const computedCoverage =
       (total === 0 ? 1.0 : (total - missed) / total) * 100
-    const filePath = sourceFile.name.replace('^../', '')
+    const filePath = sourceFile.name.replace(/^..\//, '')
 
     const coverageDroppedMessage = `Coverage dropped to ${computedCoverage.toFixed(
       2

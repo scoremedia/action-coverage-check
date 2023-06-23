@@ -31,7 +31,7 @@ function computeCoverage(coverageReportPath) {
             const missed = sourceFile.coverage.filter(coverageValue => coverageValue === 0).length;
             const total = sourceFile.coverage.filter(coverageValue => coverageValue === null).length;
             const computedCoverage = (total === 0 ? 1.0 : (total - missed) / total) * 100;
-            const filePath = sourceFile.name.replace('^../', '');
+            const filePath = sourceFile.name.replace(/^..\//, '');
             const coverageDroppedMessage = `Coverage dropped to ${computedCoverage.toFixed(2)}% in ${filePath}.`;
             annotations.push({
                 path: filePath,
