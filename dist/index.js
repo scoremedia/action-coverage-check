@@ -32,7 +32,7 @@ function computeCoverage(coverageReportPath) {
             const total = sourceFile.coverage.filter(coverageValue => coverageValue === null).length;
             const computedCoverage = (total === 0 ? 1.0 : (total - missed) / total) * 100;
             const filePath = sourceFile.name.replace(/^..\//, '');
-            const coverageDroppedMessage = `Coverage dropped to ${computedCoverage.toFixed(2)}% in ${filePath}.`;
+            const coverageDroppedMessage = `Coverage dropped to ${computedCoverage.toFixed(2)}% in this file.`;
             annotations.push({
                 path: filePath,
                 start_line: 1,
@@ -51,13 +51,20 @@ function computeCoverage(coverageReportPath) {
                         sourceFile.coverage[coverageMissedEndIndex + 1] === 0) {
                         coverageMissedEndIndex++;
                     }
+                    let message = 'Missed coverage';
+                    if (coverageMissedEndIndex > coverageMissedStartIndex) {
+                        message += `between lines ${coverageMissedStartIndex + 1} and ${coverageMissedEndIndex + 1}`;
+                    }
+                    else {
+                        message += `on line ${coverageMissedStartIndex + 1}`;
+                    }
                     annotations.push({
                         path: filePath,
                         // Line numbers are 1-indexed
                         start_line: coverageMissedStartIndex + 1,
                         end_line: coverageMissedEndIndex + 1,
                         annotation_level: 'failure',
-                        message: 'Missed coverage'
+                        message: message
                     });
                     index = coverageMissedEndIndex;
                 }

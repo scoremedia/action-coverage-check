@@ -50,7 +50,7 @@ export async function computeCoverage(
 
     const coverageDroppedMessage = `Coverage dropped to ${computedCoverage.toFixed(
       2
-    )}% in ${filePath}.`
+    )}% in this file.`
 
     annotations.push({
       path: filePath,
@@ -74,13 +74,20 @@ export async function computeCoverage(
           coverageMissedEndIndex++
         }
 
+        let message = 'Missed coverage'
+        if (coverageMissedEndIndex > coverageMissedStartIndex) {
+          message += `between lines ${coverageMissedStartIndex + 1} and ${coverageMissedEndIndex + 1}`
+        } else {
+          message += `on line ${coverageMissedStartIndex + 1}`
+        }
+
         annotations.push({
           path: filePath,
           // Line numbers are 1-indexed
           start_line: coverageMissedStartIndex + 1,
           end_line: coverageMissedEndIndex + 1,
           annotation_level: 'failure',
-          message: 'Missed coverage'
+          message: message
         })
 
         index = coverageMissedEndIndex
