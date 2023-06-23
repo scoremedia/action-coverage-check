@@ -31,7 +31,15 @@ function computeCoverage(coverageReportPath) {
             const missed = sourceFile.coverage.filter(coverageValue => coverageValue === 0).length;
             const total = sourceFile.coverage.filter(coverageValue => coverageValue === null).length;
             const computedCoverage = (total === 0 ? 1.0 : (total - missed) / total) * 100;
-            const path = sourceFile.name;
+            const filePath = sourceFile.name.replace('^../', '');
+            const coverageDroppedMessage = `Coverage dropped to ${computedCoverage.toFixed(2)}%.`;
+            annotations.push({
+                path: filePath,
+                start_line: 1,
+                end_line: 1,
+                annotation_level: 'failure',
+                message: coverageDroppedMessage
+            });
             for (let index = 0; index < sourceFile.coverage.length; index++) {
                 if (sourceFile.coverage[index] === 0) {
                     // coverage array is 0-indexed.
@@ -44,7 +52,7 @@ function computeCoverage(coverageReportPath) {
                         coverageMissedEndIndex++;
                     }
                     annotations.push({
-                        path,
+                        path: filePath,
                         // Line numbers are 1-indexed
                         start_line: coverageMissedStartIndex + 1,
                         end_line: coverageMissedEndIndex + 1,
@@ -54,14 +62,6 @@ function computeCoverage(coverageReportPath) {
                     index = coverageMissedEndIndex;
                 }
             }
-            const coverageDroppedMessage = `Coverage dropped to ${computedCoverage.toFixed(2)}%.`;
-            annotations.push({
-                path,
-                start_line: 1,
-                end_line: 1,
-                annotation_level: 'failure',
-                message: coverageDroppedMessage
-            });
         }
         return annotations;
     });
@@ -137,14 +137,7 @@ function run() {
                 : 'Coverage dropped';
             const status = 'completed';
             core.info(`ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha})`);
-            let outputTitle = '';
-            if (annotations.length > 50) {
-                outputTitle += '50 of $String($annotations.length)';
-            }
-            else {
-                outputTitle += '$String($annotations.length)';
-            }
-            outputTitle += ' coverage issues';
+            const outputTitle = `${annotations.length > 50 ? "50 of " : ""}${annotations.length} coverage issues:`;
             const octokit = github.getOctokit(token);
             // create GitHub pull request Check w/ Annotation
             // https://docs.github.com/en/rest/checks/runs#create-a-check-run
@@ -178,21 +171,20 @@ function run() {
                         'Uh-oh! Coverage dropped: ' +
                             'https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}' +
                             '\n';
-                    commentBody += '<details>' + '\n';
-                    commentBody += '<summary>Details</summary>' + '\n';
-                    commentBody += '```' + '\n';
-                    annotations.slice(0, 10).forEach(annotation => {
-                        commentBody += '-----' + '\n';
-                        commentBody += '- path: ' + annotation.path + '.' + '\n';
-                        commentBody += '- start_line: ' + annotation.start_line + '.' + '\n';
-                        commentBody += '- end_line: ' + annotation.end_line + '.' + '\n';
-                        commentBody +=
-                            '- annotation_level: ' + annotation.annotation_level + '.' + '\n';
-                        commentBody += '- message: ' + annotation.message + '.' + '\n';
-                        commentBody += '-----' + '\n';
-                    });
-                    commentBody += '```' + '\n';
-                    commentBody += '</details>' + '\n';
+                    // commentBody += '<details>' + '\n'
+                    // commentBody += '<summary>Details</summary>' + '\n'
+                    // commentBody += '```' + '\n'
+                    // annotations.slice(0, 10).forEach(annotation => {
+                    // commentBody += '-----' + '\n'
+                    // commentBody += '- path: ' + annotation.path + '.' + '\n'
+                    // commentBody += '- start_line: ' + annotation.start_line + '.' + '\n'
+                    // commentBody += '- end_line: ' + annotation.end_line + '.' + '\n'
+                    // commentBody += '- annotation_level: ' + annotation.annotation_level + '.' + '\n'
+                    // commentBody += '- message: ' + annotation.message + '.' + '\n'
+                    // commentBody += '-----' + '\n'
+                    // })
+                    // commentBody += '```' + '\n'
+                    // commentBody += '</details>' + '\n'
                     commentBody += '<!--  ' + IDENTIFIER + ' -->';
                     // Create comment
                     yield octokit.issues.createComment(Object.assign(Object.assign({}, defaultParameter), { issue_number: pullRequest.number, body: commentBody }));

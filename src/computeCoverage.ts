@@ -37,6 +37,7 @@ export async function computeCoverage(
       0
     )
       continue
+
     const missed = sourceFile.coverage.filter(
       coverageValue => coverageValue === 0
     ).length
@@ -45,7 +46,19 @@ export async function computeCoverage(
     ).length
     const computedCoverage =
       (total === 0 ? 1.0 : (total - missed) / total) * 100
-    const path = sourceFile.name
+    const filePath = sourceFile.name.replace('^../', '')
+
+    const coverageDroppedMessage = `Coverage dropped to ${computedCoverage.toFixed(
+      2
+    )}%.`
+
+    annotations.push({
+      path: filePath,
+      start_line: 1,
+      end_line: 1,
+      annotation_level: 'failure',
+      message: coverageDroppedMessage
+    })
 
     for (let index = 0; index < sourceFile.coverage.length; index++) {
       if (sourceFile.coverage[index] === 0) {
@@ -62,7 +75,7 @@ export async function computeCoverage(
         }
 
         annotations.push({
-          path,
+          path: filePath,
           // Line numbers are 1-indexed
           start_line: coverageMissedStartIndex + 1,
           end_line: coverageMissedEndIndex + 1,
@@ -74,17 +87,6 @@ export async function computeCoverage(
       }
     }
 
-    const coverageDroppedMessage = `Coverage dropped to ${computedCoverage.toFixed(
-      2
-    )}%.`
-
-    annotations.push({
-      path,
-      start_line: 1,
-      end_line: 1,
-      annotation_level: 'failure',
-      message: coverageDroppedMessage
-    })
   }
 
   return annotations

@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {computeCoverage} from './computeCoverage'
+import { computeCoverage } from './computeCoverage'
 
 const KEY_COVERAGE_REPORT_PATH = 'coverage_report_path'
 const IDENTIFIER = '513410c6-a258-11ed-a8fc-0242ac120002'
@@ -39,13 +39,7 @@ async function run(): Promise<void> {
       `ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha})`
     )
 
-    let outputTitle = ''
-    if (annotations.length > 50) {
-      outputTitle += '50 of $String($annotations.length)'
-    } else {
-      outputTitle += '$String($annotations.length)'
-    }
-    outputTitle += ' coverage issues'
+    const outputTitle = `${annotations.length > 50 ? "50 of " : ""}${annotations.length} coverage issues:`
 
     const octokit = github.getOctokit(token)
 
@@ -66,14 +60,14 @@ async function run(): Promise<void> {
 
     if (pullRequest) {
       const {
-        repo: {repo: repoName, owner: repoOwner}
+        repo: { repo: repoName, owner: repoOwner }
       } = github.context
       const defaultParameter = {
         repo: repoName,
         owner: repoOwner
       }
       // Find unique comments
-      const {data: comments} = await octokit.issues.listComments({
+      const { data: comments } = await octokit.issues.listComments({
         ...defaultParameter,
         issue_number: pullRequest.number
       })
@@ -97,21 +91,20 @@ async function run(): Promise<void> {
           'Uh-oh! Coverage dropped: ' +
           'https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}' +
           '\n'
-        commentBody += '<details>' + '\n'
-        commentBody += '<summary>Details</summary>' + '\n'
-        commentBody += '```' + '\n'
-        annotations.slice(0, 10).forEach(annotation => {
-          commentBody += '-----' + '\n'
-          commentBody += '- path: ' + annotation.path + '.' + '\n'
-          commentBody += '- start_line: ' + annotation.start_line + '.' + '\n'
-          commentBody += '- end_line: ' + annotation.end_line + '.' + '\n'
-          commentBody +=
-            '- annotation_level: ' + annotation.annotation_level + '.' + '\n'
-          commentBody += '- message: ' + annotation.message + '.' + '\n'
-          commentBody += '-----' + '\n'
-        })
-        commentBody += '```' + '\n'
-        commentBody += '</details>' + '\n'
+        // commentBody += '<details>' + '\n'
+        // commentBody += '<summary>Details</summary>' + '\n'
+        // commentBody += '```' + '\n'
+        // annotations.slice(0, 10).forEach(annotation => {
+        // commentBody += '-----' + '\n'
+        // commentBody += '- path: ' + annotation.path + '.' + '\n'
+        // commentBody += '- start_line: ' + annotation.start_line + '.' + '\n'
+        // commentBody += '- end_line: ' + annotation.end_line + '.' + '\n'
+        // commentBody += '- annotation_level: ' + annotation.annotation_level + '.' + '\n'
+        // commentBody += '- message: ' + annotation.message + '.' + '\n'
+        // commentBody += '-----' + '\n'
+        // })
+        // commentBody += '```' + '\n'
+        // commentBody += '</details>' + '\n'
         commentBody += '<!--  ' + IDENTIFIER + ' -->'
         // Create comment
         await octokit.issues.createComment({
