@@ -53,10 +53,10 @@ function computeCoverage(coverageReportPath) {
                     }
                     let message = 'Missed coverage';
                     if (coverageMissedEndIndex > coverageMissedStartIndex) {
-                        message += `between lines ${coverageMissedStartIndex + 1} and ${coverageMissedEndIndex + 1}`;
+                        message += ` between lines ${coverageMissedStartIndex + 1} and ${coverageMissedEndIndex + 1}`;
                     }
                     else {
-                        message += `on line ${coverageMissedStartIndex + 1}`;
+                        message += ` on line ${coverageMissedStartIndex + 1}`;
                     }
                     annotations.push({
                         path: filePath,
