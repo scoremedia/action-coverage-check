@@ -47,7 +47,7 @@ async function run(): Promise<void> {
     // https://docs.github.com/en/rest/checks/runs#create-a-check-run
     const checkRequest = await octokit.checks.create({
       ...github.context.repo,
-      name: 'Code Coverage',
+      name: 'report code coverage',
       head_sha: headSha,
       status,
       conclusion,

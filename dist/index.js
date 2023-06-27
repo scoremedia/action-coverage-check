@@ -149,7 +149,7 @@ function run() {
             const octokit = github.getOctokit(token);
             // create GitHub pull request Check w/ Annotation
             // https://docs.github.com/en/rest/checks/runs#create-a-check-run
-            const checkRequest = yield octokit.checks.create(Object.assign(Object.assign({}, github.context.repo), { name: 'Code Coverage', head_sha: headSha, status,
+            const checkRequest = yield octokit.checks.create(Object.assign(Object.assign({}, github.context.repo), { name: 'report code coverage', head_sha: headSha, status,
                 conclusion, output: {
                     title: outputTitle,
                     summary,
