@@ -33,7 +33,7 @@ function computeCoverage(coverageReportPath) {
             const computedCoverage = (total === 0 ? 1.0 : (total - missed) / total) * 100;
             const filePath = sourceFile.name.replace(/^..\//, '');
             const filename = sourceFile.name.replace(/^.*[\\\/]/, '');
-            const coverageDroppedMessage = `• Coverage dropped to ${computedCoverage.toFixed(2)}% in ${filename}.`;
+            const coverageDroppedMessage = `• Coverage dropped to ${computedCoverage.toFixed(2)}% in ${filename}`;
             annotations.push({
                 path: filePath,
                 start_line: 1,
@@ -52,12 +52,12 @@ function computeCoverage(coverageReportPath) {
                         sourceFile.coverage[coverageMissedEndIndex + 1] === 0) {
                         coverageMissedEndIndex++;
                     }
-                    let message = '- Missed coverage';
+                    let coverageMissedMessage = '- Missed coverage';
                     if (coverageMissedEndIndex > coverageMissedStartIndex) {
-                        message += ` between lines ${coverageMissedStartIndex + 1} and ${coverageMissedEndIndex + 1}`;
+                        coverageMissedMessage += ` between lines ${coverageMissedStartIndex + 1} and ${coverageMissedEndIndex + 1}`;
                     }
                     else {
-                        message += ` on line ${coverageMissedStartIndex + 1}`;
+                        coverageMissedMessage += ` on line ${coverageMissedStartIndex + 1}`;
                     }
                     annotations.push({
                         path: filePath,
@@ -65,7 +65,7 @@ function computeCoverage(coverageReportPath) {
                         start_line: coverageMissedStartIndex + 1,
                         end_line: coverageMissedEndIndex + 1,
                         annotation_level: 'failure',
-                        message: message
+                        message: coverageMissedMessage
                     });
                     index = coverageMissedEndIndex;
                 }
@@ -174,27 +174,10 @@ function run() {
                 }
                 if (!isSuccessful) {
                     const checkId = checkRequest.data.id;
-                    let commentBody = '';
-                    commentBody +=
-                        'Uh-oh! Coverage dropped: ' +
-                            `https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}` +
-                            '\n';
-                    // commentBody += '<details>' + '\n'
-                    // commentBody += '<summary>Details</summary>' + '\n'
-                    // commentBody += '```' + '\n'
-                    // annotations.slice(0, 10).forEach(annotation => {
-                    // commentBody += '-----' + '\n'
-                    // commentBody += '- path: ' + annotation.path + '.' + '\n'
-                    // commentBody += '- start_line: ' + annotation.start_line + '.' + '\n'
-                    // commentBody += '- end_line: ' + annotation.end_line + '.' + '\n'
-                    // commentBody += '- annotation_level: ' + annotation.annotation_level + '.' + '\n'
-                    // commentBody += '- message: ' + annotation.message + '.' + '\n'
-                    // commentBody += '-----' + '\n'
-                    // })
-                    // commentBody += '```' + '\n'
-                    // commentBody += '</details>' + '\n'
-                    commentBody += '<!--  ' + IDENTIFIER + ' -->';
-                    // Create comment
+                    const commentBody = 'Uh-oh! Coverage dropped: ' +
+                        `https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}` +
+                        '\n' +
+                        '<!--  ' + IDENTIFIER + ' -->';
                     yield octokit.issues.createComment(Object.assign(Object.assign({}, defaultParameter), { issue_number: pullRequest.number, body: commentBody }));
                 }
             }

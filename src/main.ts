@@ -86,27 +86,10 @@ async function run(): Promise<void> {
       }
       if (!isSuccessful) {
         const checkId = checkRequest.data.id
-        let commentBody = ''
-        commentBody +=
-          'Uh-oh! Coverage dropped: ' +
+        const commentBody = 'Uh-oh! Coverage dropped: ' +
           `https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}` +
-          '\n'
-        // commentBody += '<details>' + '\n'
-        // commentBody += '<summary>Details</summary>' + '\n'
-        // commentBody += '```' + '\n'
-        // annotations.slice(0, 10).forEach(annotation => {
-        // commentBody += '-----' + '\n'
-        // commentBody += '- path: ' + annotation.path + '.' + '\n'
-        // commentBody += '- start_line: ' + annotation.start_line + '.' + '\n'
-        // commentBody += '- end_line: ' + annotation.end_line + '.' + '\n'
-        // commentBody += '- annotation_level: ' + annotation.annotation_level + '.' + '\n'
-        // commentBody += '- message: ' + annotation.message + '.' + '\n'
-        // commentBody += '-----' + '\n'
-        // })
-        // commentBody += '```' + '\n'
-        // commentBody += '</details>' + '\n'
-        commentBody += '<!--  ' + IDENTIFIER + ' -->'
-        // Create comment
+          '\n' +
+          '<!--  ' + IDENTIFIER + ' -->'
         await octokit.issues.createComment({
           ...defaultParameter,
           issue_number: pullRequest.number,
