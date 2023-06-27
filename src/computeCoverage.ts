@@ -51,7 +51,7 @@ export async function computeCoverage(
 
     const coverageDroppedMessage = `• Coverage dropped to ${computedCoverage.toFixed(
       2
-    )}% in '${filename}'.`
+    )}% in ${filename}.`
 
     annotations.push({
       path: filePath,
