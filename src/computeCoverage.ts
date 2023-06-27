@@ -47,10 +47,11 @@ export async function computeCoverage(
     const computedCoverage =
       (total === 0 ? 1.0 : (total - missed) / total) * 100
     const filePath = sourceFile.name.replace(/^..\//, '')
+    const filename = sourceFile.name.replace(/^.*[\\\/]/, '')
 
-    const coverageDroppedMessage = `Coverage dropped to ${computedCoverage.toFixed(
+    const coverageDroppedMessage = `• Coverage dropped to ${computedCoverage.toFixed(
       2
-    )}% in this file.`
+    )}% in '${filename}'.`
 
     annotations.push({
       path: filePath,
@@ -74,7 +75,7 @@ export async function computeCoverage(
           coverageMissedEndIndex++
         }
 
-        let message = 'Missed coverage'
+        let message = '- Missed coverage'
         if (coverageMissedEndIndex > coverageMissedStartIndex) {
           message += ` between lines ${coverageMissedStartIndex + 1} and ${coverageMissedEndIndex + 1}`
         } else {
