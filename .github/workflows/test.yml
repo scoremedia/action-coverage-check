@@ -22,4 +22,5 @@ jobs:
       - uses: ./
         with:
           coverage_report_path: "path"
+          base_coverage_report_path: "path2"
           github_token: "ABCD"

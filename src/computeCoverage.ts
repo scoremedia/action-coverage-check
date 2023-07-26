@@ -24,12 +24,21 @@ interface CoverageData {
 }
 
 export async function computeCoverage(
-  coverageReportPath: string
+  coverageReportPath: string,
+  baseCoverageReportPath: string
 ): Promise<Annotation[]> {
   const annotations: Annotation[] = []
 
   const coverageDataStr = await fsPromise.readFile(coverageReportPath, 'utf8')
   const coverageData: CoverageData = JSON.parse(coverageDataStr)
+
+  const baseCoverageData: CoverageData?
+  if (baseCoverageReportPath) {
+    const baseCoverageDataStr = await fsPromise.readFile(baseCoverageReportPath, 'utf8')
+    baseCoverageData= JSON.parse(baseCoverageDataStr)
+  } else {
+    baseCoverageData = null
+  }
 
   for (const sourceFile of coverageData.source_files) {
     if (
@@ -38,6 +47,14 @@ export async function computeCoverage(
     )
       continue
 
+    const baseSourceFile: FileCoverage?
+    if (baseCoverageData) {
+      baseSourceFile = baseCoverageData.source_files.filter(
+        name == sourceFile.name
+      )
+    } else {
+      baseSourceFile = null
+    }
     const missed = sourceFile.coverage.filter(
       coverageValue => coverageValue === 0
     ).length

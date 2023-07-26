@@ -3,19 +3,26 @@ import * as github from '@actions/github'
 import { computeCoverage } from './computeCoverage'
 
 const KEY_COVERAGE_REPORT_PATH = 'coverage_report_path'
+const KEY_BASE_COVERAGE_REPORT_PATH = 'base_coverage_report_path'
 const IDENTIFIER = '513410c6-a258-11ed-a8fc-0242ac120002'
 
 async function run(): Promise<void> {
   try {
     const coverageReportPath: string = core.getInput(KEY_COVERAGE_REPORT_PATH)
     core.info(`Coverage report path: ${coverageReportPath}.`)
+    const baseCoverageReportPath: string = core.getInput(KEY_BASE_COVERAGE_REPORT_PATH)
+    core.info(`Base coverage report path: ${coverageReportPath}.`)
 
     if (!coverageReportPath) {
       core.setFailed('❌ Coverage report path not provided')
       return
     }
+    if (!baseCoverageReportPath) {
+      core.info('No base coverage report path provided: target 100%.')
+      return
+    }
 
-    const annotations = await computeCoverage(coverageReportPath)
+    const annotations = await computeCoverage(coverageReportPath, baseCoverageReportPath)
 
     const token = core.getInput('github_token') || process.env.GITHUB_TOKEN
 
