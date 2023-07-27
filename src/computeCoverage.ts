@@ -1,4 +1,5 @@
 import {promises as fsPromise} from 'fs'
+import * as core from '@actions/core'
 
 // https://docs.github.com/en/rest/checks/runs#create-a-check-run
 export interface Annotation {
@@ -30,31 +31,43 @@ export async function computeCoverage(
   const annotations: Annotation[] = []
 
   const coverageDataStr = await fsPromise.readFile(coverageReportPath, 'utf8')
-  const coverageData: CoverageData = JSON.parse(coverageDataStr)
+  const branchCoverageData: CoverageData = JSON.parse(coverageDataStr)
 
-  const baseCoverageData: CoverageData?
+  core.debug("Branch code coverage data length: ", branchCoverageData?.source_files.length)
+
+  let baseCoverageData: CoverageData | null
   if (baseCoverageReportPath) {
     const baseCoverageDataStr = await fsPromise.readFile(baseCoverageReportPath, 'utf8')
-    baseCoverageData= JSON.parse(baseCoverageDataStr)
+    baseCoverageData = JSON.parse(baseCoverageDataStr)
   } else {
     baseCoverageData = null
   }
 
-  for (const sourceFile of coverageData.source_files) {
+  core.debug("Base code coverage data length: ", baseCoverageData?.source_files.length)
+
+  const isCoverageSame = (sourceBranch : FileCoverage, baseBranch: FileCoverage) => baseBranch.name == sourceBranch.name
+                                                                          && baseBranch.coverage == sourceBranch.coverage
+                                                                          && baseBranch.source == sourceBranch.source
+
+  let coverageData: FileCoverage[]
+  if(baseCoverageData == null) {
+    coverageData = branchCoverageData.source_files
+    core.debug("No Dev branch")
+  } else {
+    coverageData = branchCoverageData.source_files.filter(
+        coverageFile => !baseCoverageData?.source_files.some(baseCoverageFile => isCoverageSame(coverageFile, baseCoverageFile))
+    )
+  }
+
+  core.debug("Final code coverage data length: ", coverageData.length)
+
+  for (const sourceFile of coverageData) {
     if (
       sourceFile.coverage.filter(coverageValue => coverageValue === 0).length <=
       0
     )
       continue
 
-    const baseSourceFile: FileCoverage?
-    if (baseCoverageData) {
-      baseSourceFile = baseCoverageData.source_files.filter(
-        name == sourceFile.name
-      )
-    } else {
-      baseSourceFile = null
-    }
     const missed = sourceFile.coverage.filter(
       coverageValue => coverageValue === 0
     ).length
