@@ -9,9 +9,9 @@ const IDENTIFIER = '513410c6-a258-11ed-a8fc-0242ac120002'
 async function run(): Promise<void> {
   try {
     const coverageReportPath: string = core.getInput(KEY_COVERAGE_REPORT_PATH)
-    core.info(`Coverage report path: ${coverageReportPath}.`)
+    core.info(`Coverage report path =: ${coverageReportPath}.`)
     const baseCoverageReportPath: string = core.getInput(KEY_BASE_COVERAGE_REPORT_PATH)
-    core.info(`Base coverage report path: ${coverageReportPath}.`)
+    core.info(`Base coverage report path =: ${baseCoverageReportPath}.`)
 
     if (!coverageReportPath) {
       core.setFailed('❌ Coverage report path not provided')
@@ -43,7 +43,7 @@ async function run(): Promise<void> {
       : 'Coverage dropped'
     const status: 'completed' = 'completed'
     core.info(
-      `ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha})`
+      `ℹ️ Posting status '${status}' with conclusion '${conclusion}' to the ${link} (sha: ${headSha})`
     )
 
     const outputTitle = `${annotations.length > 50 ? "50 of " : ""}${annotations.length} coverage issues:`

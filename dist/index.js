@@ -7,6 +7,25 @@ require('./sourcemap-register.js');module.exports =
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -19,12 +38,41 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.computeCoverage = void 0;
 const fs_1 = __webpack_require__(5747);
-function computeCoverage(coverageReportPath) {
+const core = __importStar(__webpack_require__(2186));
+function computeCoverage(coverageReportPath, baseCoverageReportPath) {
     return __awaiter(this, void 0, void 0, function* () {
         const annotations = [];
         const coverageDataStr = yield fs_1.promises.readFile(coverageReportPath, 'utf8');
-        const coverageData = JSON.parse(coverageDataStr);
-        for (const sourceFile of coverageData.source_files) {
+        const branchCoverageData = JSON.parse(coverageDataStr);
+        core.info(`Branch code coverage data length: ${branchCoverageData === null || branchCoverageData === void 0 ? void 0 : branchCoverageData.source_files.length}`);
+        let baseCoverageData;
+        if (baseCoverageReportPath) {
+            try {
+                const baseCoverageDataStr = yield fs_1.promises.readFile(baseCoverageReportPath, 'utf8');
+                baseCoverageData = JSON.parse(baseCoverageDataStr);
+            }
+            catch (e) {
+                baseCoverageData = null;
+                core.info(`Error dev report:${e.message}`);
+            }
+        }
+        else {
+            baseCoverageData = null;
+        }
+        core.info(`Base code coverage data length:, ${baseCoverageData === null || baseCoverageData === void 0 ? void 0 : baseCoverageData.source_files.length}`);
+        const isCoverageSame = (sourceBranch, baseBranch) => baseBranch.name == sourceBranch.name
+            && baseBranch.coverage == sourceBranch.coverage
+            && baseBranch.source == sourceBranch.source;
+        let coverageData;
+        if (baseCoverageData == null) {
+            coverageData = branchCoverageData.source_files;
+            core.info("No Dev branch code coverage available");
+        }
+        else {
+            coverageData = branchCoverageData.source_files.filter(coverageFile => !(baseCoverageData === null || baseCoverageData === void 0 ? void 0 : baseCoverageData.source_files.some(baseCoverageFile => isCoverageSame(coverageFile, baseCoverageFile))));
+        }
+        core.info(`Final code coverage data length: ${coverageData.length}`);
+        for (const sourceFile of coverageData) {
             if (sourceFile.coverage.filter(coverageValue => coverageValue === 0).length <=
                 0)
                 continue;
@@ -117,17 +165,24 @@ const core = __importStar(__webpack_require__(2186));
 const github = __importStar(__webpack_require__(5438));
 const computeCoverage_1 = __webpack_require__(4572);
 const KEY_COVERAGE_REPORT_PATH = 'coverage_report_path';
+const KEY_BASE_COVERAGE_REPORT_PATH = 'base_coverage_report_path';
 const IDENTIFIER = '513410c6-a258-11ed-a8fc-0242ac120002';
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const coverageReportPath = core.getInput(KEY_COVERAGE_REPORT_PATH);
-            core.info(`Coverage report path: ${coverageReportPath}.`);
+            core.info(`Coverage report path =: ${coverageReportPath}.`);
+            const baseCoverageReportPath = core.getInput(KEY_BASE_COVERAGE_REPORT_PATH);
+            core.info(`Base coverage report path =: ${baseCoverageReportPath}.`);
             if (!coverageReportPath) {
                 core.setFailed('❌ Coverage report path not provided');
                 return;
             }
-            const annotations = yield computeCoverage_1.computeCoverage(coverageReportPath);
+            if (!baseCoverageReportPath) {
+                core.info('No base coverage report path provided: target 100%.');
+                return;
+            }
+            const annotations = yield computeCoverage_1.computeCoverage(coverageReportPath, baseCoverageReportPath);
             const token = core.getInput('github_token') || process.env.GITHUB_TOKEN;
             if (!token) {
                 core.setFailed('❌ Missing Github token');
@@ -144,7 +199,7 @@ function run() {
                 ? 'Coverage stayed at 100%'
                 : 'Coverage dropped';
             const status = 'completed';
-            core.info(`ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha})`);
+            core.info(`ℹ️ Posting status '${status}' with conclusion '${conclusion}' to the ${link} (sha: ${headSha})`);
             const outputTitle = `${annotations.length > 50 ? "50 of " : ""}${annotations.length} coverage issues:`;
             const octokit = github.getOctokit(token);
             // create GitHub pull request Check w/ Annotation

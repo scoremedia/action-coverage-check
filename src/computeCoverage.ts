@@ -33,17 +33,22 @@ export async function computeCoverage(
   const coverageDataStr = await fsPromise.readFile(coverageReportPath, 'utf8')
   const branchCoverageData: CoverageData = JSON.parse(coverageDataStr)
 
-  core.debug("Branch code coverage data length: ", branchCoverageData?.source_files.length)
+  core.info(`Branch code coverage data length: ${branchCoverageData?.source_files.length}`)
 
   let baseCoverageData: CoverageData | null
   if (baseCoverageReportPath) {
-    const baseCoverageDataStr = await fsPromise.readFile(baseCoverageReportPath, 'utf8')
-    baseCoverageData = JSON.parse(baseCoverageDataStr)
+    try {
+      const baseCoverageDataStr = await fsPromise.readFile(baseCoverageReportPath, 'utf8')
+      baseCoverageData = JSON.parse(baseCoverageDataStr)
+    } catch (e) {
+      baseCoverageData = null
+      core.info(`Error dev report:${ e.message }`)
+    }
   } else {
     baseCoverageData = null
   }
 
-  core.debug("Base code coverage data length: ", baseCoverageData?.source_files.length)
+  core.info(`Base code coverage data length:, ${baseCoverageData?.source_files.length}`)
 
   const isCoverageSame = (sourceBranch : FileCoverage, baseBranch: FileCoverage) => baseBranch.name == sourceBranch.name
                                                                           && baseBranch.coverage == sourceBranch.coverage
@@ -52,14 +57,14 @@ export async function computeCoverage(
   let coverageData: FileCoverage[]
   if(baseCoverageData == null) {
     coverageData = branchCoverageData.source_files
-    core.debug("No Dev branch")
+    core.info("No Dev branch code coverage available")
   } else {
     coverageData = branchCoverageData.source_files.filter(
         coverageFile => !baseCoverageData?.source_files.some(baseCoverageFile => isCoverageSame(coverageFile, baseCoverageFile))
     )
   }
 
-  core.debug("Final code coverage data length: ", coverageData.length)
+  core.info(`Final code coverage data length: ${coverageData.length}`)
 
   for (const sourceFile of coverageData) {
     if (
