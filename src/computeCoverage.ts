@@ -48,10 +48,8 @@ export async function computeCoverage(
     baseCoverageData = null
   }
 
-  core.info(`Base code coverage data length:, ${baseCoverageData?.source_files.length}`)
-
   const isCoverageSame = (sourceBranch : FileCoverage, baseBranch: FileCoverage) => baseBranch.name == sourceBranch.name
-                                                                          && baseBranch.coverage == sourceBranch.coverage
+                                                                          && JSON.stringify(baseBranch.coverage) === JSON.stringify(sourceBranch.coverage)
                                                                           && baseBranch.source == sourceBranch.source
 
   let coverageData: FileCoverage[]

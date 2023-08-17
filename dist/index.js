@@ -59,9 +59,8 @@ function computeCoverage(coverageReportPath, baseCoverageReportPath) {
         else {
             baseCoverageData = null;
         }
-        core.info(`Base code coverage data length:, ${baseCoverageData === null || baseCoverageData === void 0 ? void 0 : baseCoverageData.source_files.length}`);
         const isCoverageSame = (sourceBranch, baseBranch) => baseBranch.name == sourceBranch.name
-            && baseBranch.coverage == sourceBranch.coverage
+            && JSON.stringify(baseBranch.coverage) === JSON.stringify(sourceBranch.coverage)
             && baseBranch.source == sourceBranch.source;
         let coverageData;
         if (baseCoverageData == null) {
