@@ -5,6 +5,9 @@ inputs:
   coverage_report_path:
     required: true
     description: 'JSON file that contains coverage report'
+  base_coverage_report_path:
+    required: false
+    description: 'Optional JSON file that contains the base coverage report'
   github_token:
     required: true
     description: 'Token used to create a check using Github API'

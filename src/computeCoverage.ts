@@ -1,4 +1,5 @@
 import {promises as fsPromise} from 'fs'
+import * as core from '@actions/core'
 
 // https://docs.github.com/en/rest/checks/runs#create-a-check-run
 export interface Annotation {
@@ -24,14 +25,46 @@ interface CoverageData {
 }
 
 export async function computeCoverage(
-  coverageReportPath: string
+  coverageReportPath: string,
+  baseCoverageReportPath: string
 ): Promise<Annotation[]> {
   const annotations: Annotation[] = []
 
   const coverageDataStr = await fsPromise.readFile(coverageReportPath, 'utf8')
-  const coverageData: CoverageData = JSON.parse(coverageDataStr)
+  const branchCoverageData: CoverageData = JSON.parse(coverageDataStr)
 
-  for (const sourceFile of coverageData.source_files) {
+  core.info(`Branch code coverage data length: ${branchCoverageData?.source_files.length}`)
+
+  let baseCoverageData: CoverageData | null
+  if (baseCoverageReportPath) {
+    try {
+      const baseCoverageDataStr = await fsPromise.readFile(baseCoverageReportPath, 'utf8')
+      baseCoverageData = JSON.parse(baseCoverageDataStr)
+    } catch (e) {
+      baseCoverageData = null
+      core.info(`Error dev report:${ e.message }`)
+    }
+  } else {
+    baseCoverageData = null
+  }
+
+  const isCoverageSame = (sourceBranch : FileCoverage, baseBranch: FileCoverage) => baseBranch.name == sourceBranch.name
+                                                                          && JSON.stringify(baseBranch.coverage) === JSON.stringify(sourceBranch.coverage)
+                                                                          && baseBranch.source == sourceBranch.source
+
+  let coverageData: FileCoverage[]
+  if(baseCoverageData == null) {
+    coverageData = branchCoverageData.source_files
+    core.info("No Dev branch code coverage available")
+  } else {
+    coverageData = branchCoverageData.source_files.filter(
+        coverageFile => !baseCoverageData?.source_files.some(baseCoverageFile => isCoverageSame(coverageFile, baseCoverageFile))
+    )
+  }
+
+  core.info(`Final code coverage data length: ${coverageData.length}`)
+
+  for (const sourceFile of coverageData) {
     if (
       sourceFile.coverage.filter(coverageValue => coverageValue === 0).length <=
       0
