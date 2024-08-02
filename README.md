@@ -4,10 +4,11 @@ Action that parses a coverage-report to pass/fail a build. Code annotations are 
 
 ### Inputs
 
-| **Input**              | **Description**                                                                                                                                                       |
-|------------------------|-----------------------------------------------------------------------|
-| `coverage_report_path` | **Required**. Path to the JSON file that contains coverage report.    |
-| `github_token`         | **Required**. Token used to create a check using Github API.          |
+| **Input**                   | **Description**                                                                                                                                                       |
+|-----------------------------|-------------------------------------------------------------------------|
+| `coverage_report_path`      | **Required**. Path to the JSON file that contains coverage report.      |
+| `base_coverage_report_path` | **Optional**. Path to the JSON file that contains base coverage report. |
+| `github_token`              | **Required**. Token used to create a check using Github API.            |
 
 ## Sample
 
@@ -28,5 +29,6 @@ jobs:
         uses: scoremedia/coverage-check@v0.0.1
         with:
           coverage_report_path: 'build/coveralls/report.json'
+          base_coverage_report_path: 'base_coverage_report_path/report.json'
           github_token: ${{ secrets.GITHUB_TOKEN }}
 ```
