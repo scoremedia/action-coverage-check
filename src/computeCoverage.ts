@@ -1,10 +1,16 @@
 import {promises as fsPromise} from 'fs'
 
+expect interface TotalCoverageInfo {
+    totalCoverage: number
+    annotations: Annotation[]
+}
+
 // https://docs.github.com/en/rest/checks/runs#create-a-check-run
 export interface Annotation {
   path: string
   start_line: number
   end_line: number
+  coverage: number
   // start_column: number,
   // end_column: number,
   annotation_level: 'failure' | 'notice' | 'warning'
@@ -25,7 +31,7 @@ interface CoverageData {
 
 export async function computeCoverage(
   coverageReportPath: string
-): Promise<Annotation[]> {
+): Promise<TotalCoverageInfo> {
   const annotations: Annotation[] = []
 
   const coverageDataStr = await fsPromise.readFile(coverageReportPath, 'utf8')
@@ -57,6 +63,7 @@ export async function computeCoverage(
       start_line: 1,
       end_line: 1,
       annotation_level: 'failure',
+      coverage: computedCoverage
       message: coverageDroppedMessage
     })
 
@@ -96,5 +103,6 @@ export async function computeCoverage(
 
   }
 
-  return annotations
+  const totalCoverage = annotations.reduce((partialSum, a) => partialSum + a, 0)
+  return { totalCoverage: totalCoverage, annotations: annotations};
 }
