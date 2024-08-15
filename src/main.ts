@@ -15,7 +15,7 @@ async function run(): Promise<void> {
       return
     }
 
-    const totalCoverageInfo = await computeCoverage(coverageReportPath)
+    const annotations = await computeCoverage(coverageReportPath)
 
     const token = core.getInput('github_token') || process.env.GITHUB_TOKEN
 
@@ -27,25 +27,24 @@ async function run(): Promise<void> {
     const pullRequest = github.context.payload.pull_request
     const headSha = (pullRequest && pullRequest.head.sha) || github.context.sha
     const link = (pullRequest && pullRequest.html_url) || github.context.ref
-    const isSuccessful = totalCoverageInfo.totalCoverage >= 0.8
+    const isSuccessful = annotations.length === 0
     const conclusion: 'success' | 'failure' = isSuccessful
       ? 'success'
       : 'failure'
     const summary = isSuccessful
-      ? 'Coverage stayed above 80%'
-      : 'Coverage dropped below 80%'
+      ? 'Coverage stayed at 100%'
+      : 'Coverage dropped'
     const status: 'completed' = 'completed'
     core.info(
-      `ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha}`
+      `ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha})`
     )
 
-    const title = `${totalCoverageInfo.annotations.length > 50 ? '50 of ' : ''}${totalCoverageInfo.annotations.length} coverage issues:`
+    const outputTitle = `${annotations.length > 50 ? '50 of ' : ''}${annotations.length} coverage issues:`
 
     const octokit = github.getOctokit(token)
 
     // create GitHub pull request Check w/ Annotation
     // https://docs.github.com/en/rest/checks/runs#create-a-check-run
-    const annotationsSlice = totalCoverageInfo.annotations.slice(0, 50)
     const checkRequest = await octokit.rest.checks.create({
       ...github.context.repo,
       name: 'report code coverage',
@@ -53,9 +52,9 @@ async function run(): Promise<void> {
       status,
       conclusion,
       output: {
-        title,
+        title: outputTitle,
         summary,
-        annotations: annotationsSlice
+        annotations: annotations.slice(0, 50)
       }
     })
 
@@ -73,7 +72,7 @@ async function run(): Promise<void> {
         issue_number: pullRequest.number
       })
       const targetComment = comments.find(c => {
-        c?.body?.includes(IDENTIFIER)
+        return c?.body?.includes(IDENTIFIER)
       })
       // Delete previous comment if exist
       if (targetComment) {

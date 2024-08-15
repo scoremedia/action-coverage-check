@@ -38,7 +38,6 @@ function computeCoverage(coverageReportPath) {
                 start_line: 1,
                 end_line: 1,
                 annotation_level: 'failure',
-                coverage: computedCoverage,
                 message: coverageDroppedMessage
             });
             for (let index = 0; index < sourceFile.coverage.length; index++) {
@@ -61,18 +60,17 @@ function computeCoverage(coverageReportPath) {
                     }
                     annotations.push({
                         path: filePath,
+                        // Line numbers are 1-indexed
                         start_line: coverageMissedStartIndex + 1,
                         end_line: coverageMissedEndIndex + 1,
                         annotation_level: 'failure',
-                        coverage: computedCoverage,
                         message: coverageMissedMessage
                     });
                     index = coverageMissedEndIndex;
                 }
             }
         }
-        const totalCoverage = annotations.reduce((accumulator, current_value) => accumulator + current_value.coverage, 0);
-        return { totalCoverage, annotations };
+        return annotations;
     });
 }
 
@@ -131,7 +129,7 @@ function run() {
                 core.setFailed('❌ Coverage report path not provided');
                 return;
             }
-            const totalCoverageInfo = yield (0, computeCoverage_1.computeCoverage)(coverageReportPath);
+            const annotations = yield (0, computeCoverage_1.computeCoverage)(coverageReportPath);
             const token = core.getInput('github_token') || process.env.GITHUB_TOKEN;
             if (!token) {
                 core.setFailed('❌ Missing Github token');
@@ -140,25 +138,24 @@ function run() {
             const pullRequest = github.context.payload.pull_request;
             const headSha = (pullRequest && pullRequest.head.sha) || github.context.sha;
             const link = (pullRequest && pullRequest.html_url) || github.context.ref;
-            const isSuccessful = totalCoverageInfo.totalCoverage >= 0.8;
+            const isSuccessful = annotations.length === 0;
             const conclusion = isSuccessful
                 ? 'success'
                 : 'failure';
             const summary = isSuccessful
-                ? 'Coverage stayed above 80%'
-                : 'Coverage dropped below 80%';
+                ? 'Coverage stayed at 100%'
+                : 'Coverage dropped';
             const status = 'completed';
-            core.info(`ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha}`);
-            const title = `${totalCoverageInfo.annotations.length > 50 ? '50 of ' : ''}${totalCoverageInfo.annotations.length} coverage issues:`;
+            core.info(`ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha})`);
+            const outputTitle = `${annotations.length > 50 ? '50 of ' : ''}${annotations.length} coverage issues:`;
             const octokit = github.getOctokit(token);
             // create GitHub pull request Check w/ Annotation
             // https://docs.github.com/en/rest/checks/runs#create-a-check-run
-            const annotationsSlice = totalCoverageInfo.annotations.slice(0, 50);
             const checkRequest = yield octokit.rest.checks.create(Object.assign(Object.assign({}, github.context.repo), { name: 'report code coverage', head_sha: headSha, status,
                 conclusion, output: {
-                    title,
+                    title: outputTitle,
                     summary,
-                    annotations: annotationsSlice
+                    annotations: annotations.slice(0, 50)
                 } }));
             if (pullRequest) {
                 const { repo: { repo: repoName, owner: repoOwner } } = github.context;
@@ -170,7 +167,7 @@ function run() {
                 const { data: comments } = yield octokit.rest.issues.listComments(Object.assign(Object.assign({}, defaultParameter), { issue_number: pullRequest.number }));
                 const targetComment = comments.find(c => {
                     var _a;
-                    (_a = c === null || c === void 0 ? void 0 : c.body) === null || _a === void 0 ? void 0 : _a.includes(IDENTIFIER);
+                    return (_a = c === null || c === void 0 ? void 0 : c.body) === null || _a === void 0 ? void 0 : _a.includes(IDENTIFIER);
                 });
                 // Delete previous comment if exist
                 if (targetComment) {
