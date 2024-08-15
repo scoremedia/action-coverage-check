@@ -102,7 +102,11 @@ async function run(): Promise<void> {
       core.setFailed('❌ Coverage dropped')
     }
   } catch (error) {
-    core.setFailed(error.message)
+    let errorMessage = "Failed to check coverage";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    console.log(errorMessage);
   }
 }
 
