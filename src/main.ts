@@ -54,7 +54,7 @@ async function run(): Promise<void> {
       output: {
         title: outputTitle,
         summary,
-        totalCoverageInfo.annotations: totalCoverageInfo.annotations.slice(0, 50)
+        totalCoverageInfo.annotations: totalCoverageInfo.annotations.slice(0, 50),
       }
     })
 
