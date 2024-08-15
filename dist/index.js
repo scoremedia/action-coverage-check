@@ -149,7 +149,7 @@ function run() {
             const octokit = github.getOctokit(token);
             // create GitHub pull request Check w/ Annotation
             // https://docs.github.com/en/rest/checks/runs#create-a-check-run
-            const checkRequest = yield octokit.checks.create(Object.assign(Object.assign({}, github.context.repo), { name: 'report code coverage', head_sha: headSha, status,
+            const checkRequest = yield octokit.rest.checks.create(Object.assign(Object.assign({}, github.context.repo), { name: 'report code coverage', head_sha: headSha, status,
                 conclusion, output: {
                     title: outputTitle,
                     summary,
@@ -162,14 +162,14 @@ function run() {
                     owner: repoOwner
                 };
                 // Find unique comments
-                const { data: comments } = yield octokit.issues.listComments(Object.assign(Object.assign({}, defaultParameter), { issue_number: pullRequest.number }));
+                const { data: comments } = yield octokit.rest.issues.listComments(Object.assign(Object.assign({}, defaultParameter), { issue_number: pullRequest.number }));
                 const targetComment = comments.find(c => {
                     var _a;
                     return (_a = c === null || c === void 0 ? void 0 : c.body) === null || _a === void 0 ? void 0 : _a.includes(IDENTIFIER);
                 });
                 // Delete previous comment if exist
                 if (targetComment) {
-                    yield octokit.issues.deleteComment(Object.assign(Object.assign({}, defaultParameter), { comment_id: targetComment.id }));
+                    yield octokit.rest.issues.deleteComment(Object.assign(Object.assign({}, defaultParameter), { comment_id: targetComment.id }));
                     core.info(`Comment successfully delete for id: ${String(targetComment.id)}`);
                 }
                 if (!isSuccessful) {
@@ -178,7 +178,7 @@ function run() {
                         `https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}` +
                         '\n' +
                         '<!--  ' + IDENTIFIER + ' -->';
-                    yield octokit.issues.createComment(Object.assign(Object.assign({}, defaultParameter), { issue_number: pullRequest.number, body: commentBody }));
+                    yield octokit.rest.issues.createComment(Object.assign(Object.assign({}, defaultParameter), { issue_number: pullRequest.number, body: commentBody }));
                 }
             }
             if (!isSuccessful) {
