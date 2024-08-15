@@ -1,8 +1,8 @@
 import {promises as fsPromise} from 'fs'
 
 export interface TotalCoverageInfo {
-    totalCoverage: number
-    annotations: Annotation[]
+  totalCoverage: number
+  annotations: Annotation[]
 }
 
 // https://docs.github.com/en/rest/checks/runs#create-a-check-run
@@ -100,9 +100,11 @@ export async function computeCoverage(
         index = coverageMissedEndIndex
       }
     }
-
   }
 
-  const totalCoverage = annotations.reduce((accumulator, current_value) => accumulator + current_value.coverage, 0)
-  return { totalCoverage: totalCoverage, annotations: annotations};
+  const totalCoverage = annotations.reduce(
+    (accumulator, current_value) => accumulator + current_value.coverage,
+    0
+  )
+  return {totalCoverage: totalCoverage, annotations: annotations}
 }

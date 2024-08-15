@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import { computeCoverage } from './computeCoverage'
+import {computeCoverage} from './computeCoverage'
 
 const KEY_COVERAGE_REPORT_PATH = 'coverage_report_path'
 const IDENTIFIER = '513410c6-a258-11ed-a8fc-0242ac120002'
@@ -27,7 +27,7 @@ async function run(): Promise<void> {
     const pullRequest = github.context.payload.pull_request
     const headSha = (pullRequest && pullRequest.head.sha) || github.context.sha
     const link = (pullRequest && pullRequest.html_url) || github.context.ref
-    const isSuccessful = totalCoverageInfo.totalCoverageInfo >= .8
+    const isSuccessful = totalCoverageInfo.totalCoverage >= 0.8
     const conclusion: 'success' | 'failure' = isSuccessful
       ? 'success'
       : 'failure'
@@ -39,7 +39,7 @@ async function run(): Promise<void> {
       `ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha}`
     )
 
-    const outputTitle = `${totalCoverageInfo.annotations.length > 50 ? "50 of " : ""}${totalCoverageInfo.annotations.length} coverage issues:`
+    const outputTitle = `${totalCoverageInfo.annotations.length > 50 ? '50 of ' : ''}${totalCoverageInfo.annotations.length} coverage issues:`
 
     const octokit = github.getOctokit(token)
 
@@ -55,24 +55,24 @@ async function run(): Promise<void> {
       output: {
         title: outputTitle,
         summary: summary,
-        annotations: annotationsSlice,
+        annotations: annotationsSlice
       }
     })
 
     if (pullRequest) {
       const {
-        repo: { repo: repoName, owner: repoOwner }
+        repo: {repo: repoName, owner: repoOwner}
       } = github.context
       const defaultParameter = {
         repo: repoName,
         owner: repoOwner
       }
       // Find unique comments
-      const { data: comments } = await octokit.rest.issues.listComments({
+      const {data: comments} = await octokit.rest.issues.listComments({
         ...defaultParameter,
         issue_number: pullRequest.number
       })
-      const targetComment = comments.find((c) => {
+      const targetComment = comments.find(c => {
         c?.body?.includes(IDENTIFIER)
       })
       // Delete previous comment if exist
@@ -87,10 +87,13 @@ async function run(): Promise<void> {
       }
       if (!isSuccessful) {
         const checkId = checkRequest.data.id
-        const commentBody = 'Uh-oh! Coverage dropped: ' +
+        const commentBody =
+          'Uh-oh! Coverage dropped: ' +
           `https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}` +
           '\n' +
-          '<!--  ' + IDENTIFIER + ' -->'
+          '<!--  ' +
+          IDENTIFIER +
+          ' -->'
         await octokit.rest.issues.createComment({
           ...defaultParameter,
           issue_number: pullRequest.number,
@@ -102,11 +105,11 @@ async function run(): Promise<void> {
       core.setFailed('❌ Coverage dropped')
     }
   } catch (error) {
-    let errorMessage = "Failed to check coverage";
+    let errorMessage = 'Failed to check coverage'
     if (error instanceof Error) {
-      errorMessage = error.message;
+      errorMessage = error.message
     }
-    console.log(errorMessage);
+    console.log(errorMessage)
   }
 }
 
