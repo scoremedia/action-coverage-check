@@ -36,7 +36,7 @@ async function run(): Promise<void> {
       : 'Coverage dropped'
     const status: 'completed' = 'completed'
     core.info(
-      `ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha})`
+      `ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha}`
     )
 
     const outputTitle = `${totalCoverageInfo.annotations.length > 50 ? "50 of " : ""}${totalCoverageInfo.annotations.length} coverage issues:`
