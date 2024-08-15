@@ -53,7 +53,7 @@ export async function computeCoverage(
     const computedCoverage =
       (total === 0 ? 1.0 : (total - missed) / total) * 100
     const filePath = sourceFile.name.replace(/^..\//, '')
-    const filename = sourceFile.name.replace(/^.*[\\\/]/, '')
+    const filename = sourceFile.name.replace(/^.*[\\/]/, '')
 
     const coverageDroppedMessage = `• Coverage dropped to ${computedCoverage.toFixed(
       2
@@ -106,5 +106,5 @@ export async function computeCoverage(
     (accumulator, current_value) => accumulator + current_value.coverage,
     0
   )
-  return {totalCoverage: totalCoverage, annotations: annotations}
+  return {totalCoverage, annotations}
 }

@@ -39,7 +39,7 @@ async function run(): Promise<void> {
       `ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha}`
     )
 
-    const outputTitle = `${totalCoverageInfo.annotations.length > 50 ? '50 of ' : ''}${totalCoverageInfo.annotations.length} coverage issues:`
+    const title = `${totalCoverageInfo.annotations.length > 50 ? '50 of ' : ''}${totalCoverageInfo.annotations.length} coverage issues:`
 
     const octokit = github.getOctokit(token)
 
@@ -53,8 +53,8 @@ async function run(): Promise<void> {
       status,
       conclusion,
       output: {
-        title: outputTitle,
-        summary: summary,
+        title,
+        summary,
         annotations: annotationsSlice
       }
     })
