@@ -93,6 +93,7 @@ export async function computeCoverage(
           start_line: coverageMissedStartIndex + 1,
           end_line: coverageMissedEndIndex + 1,
           annotation_level: 'failure',
+          coverage: computedCoverage,
           message: coverageMissedMessage
         })
 
