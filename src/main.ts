@@ -46,7 +46,7 @@ async function run(): Promise<void> {
     // create GitHub pull request Check w/ Annotation
     // https://docs.github.com/en/rest/checks/runs#create-a-check-run
     const annotationsSlice = totalCoverageInfo.annotations.slice(0, 50)
-    const checkRequest = await octokit.checks.create({
+    const checkRequest = await github.rest.checks.create({
       ...github.context.repo,
       name: 'report code coverage',
       head_sha: headSha,
@@ -68,7 +68,7 @@ async function run(): Promise<void> {
         owner: repoOwner
       }
       // Find unique comments
-      const { data: comments } = await octokit.issues.listComments({
+      const { data: comments } = await github.rest.issues.listComments({
         ...defaultParameter,
         issue_number: pullRequest.number
       })
