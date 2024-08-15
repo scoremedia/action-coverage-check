@@ -55,7 +55,7 @@ async function run(): Promise<void> {
       output: {
         title: outputTitle,
         summary: summary,
-        annotationsSlice,
+        annotations: annotationsSlice,
       }
     })
 
