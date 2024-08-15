@@ -103,6 +103,6 @@ export async function computeCoverage(
 
   }
 
-  const totalCoverage = annotations.reduce((partialSum, a) => partialSum + annotation.coverage, 0)
+  const totalCoverage = annotations.reduce((accumulator, current_value) => accumulator + current_value.coverage, 0)
   return { totalCoverage: totalCoverage, annotations: annotations};
 }
