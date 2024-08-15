@@ -1,6 +1,6 @@
 import {promises as fsPromise} from 'fs'
 
-expect interface TotalCoverageInfo {
+export interface TotalCoverageInfo {
     totalCoverage: number
     annotations: Annotation[]
 }
