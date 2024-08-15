@@ -45,6 +45,7 @@ async function run(): Promise<void> {
 
     // create GitHub pull request Check w/ Annotation
     // https://docs.github.com/en/rest/checks/runs#create-a-check-run
+    const annotationsSlice = totalCoverageInfo.annotations.slice(0, 50)
     const checkRequest = await octokit.checks.create({
       ...github.context.repo,
       name: 'report code coverage',
@@ -54,7 +55,7 @@ async function run(): Promise<void> {
       output: {
         title: outputTitle,
         summary: summary,
-        totalCoverageInfo.annotations.slice(0, 50),
+        $annotationsSlice,
       }
     })
 
