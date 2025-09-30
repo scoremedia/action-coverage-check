@@ -1,0 +1,94 @@
+import { readFileSync } from 'fs'
+import { parseStringPromise } from 'xml2js'
+import { Annotation, TotalCoverageInfo } from './models/action'
+import { convertObjToReport } from './util/jsonObjectToReport'
+import { Report } from './models/jacoco'
+
+export async function computeCoverageXML(
+    coverageReportPath: string
+): Promise<TotalCoverageInfo> {
+    const annotations: Annotation[] = []
+
+    // Read and parse the XML coverage report
+    const jsonCoverage = await parseStringPromise(readFileSync(coverageReportPath, 'utf-8'));
+
+    // Convert the parsed JSON object to the Report interface
+    const report: Report = convertObjToReport(jsonCoverage.report)
+
+    let totalMissed = 0
+    let totalCovered = 0
+    
+    for (const pkg of report.package || []) {
+        for (const sf of pkg.sourcefile || []) {
+            // Calculate file coverage
+            const missed = sf.counter?.find(c => c.type == 'LINE')?.missed || 0
+            const covered = sf.counter?.find(c => c.type == 'LINE')?.covered || 0
+            const total = missed + covered
+            const fileCoverage = total === 0 ? 100 : (covered / total) * 100
+
+            // Accumulate totals for overall coverage calculation
+            totalMissed += missed
+            totalCovered += covered
+
+            const filePath = `${pkg.name}/${sf.name}`
+            if (fileCoverage < 100) {
+                annotations.push({
+                    path: filePath,
+                    start_line: 1,
+                    end_line: 1,
+                    annotation_level: 'failure',
+                    coverage: fileCoverage,
+                    message: `Coverage dropped on to: ${fileCoverage.toFixed(2)}% in ${sf.name}`,
+                })
+
+                // Group consecutive missed lines and push a single annotation per range
+                const missedRanges: { start: number, end: number }[] = []
+                let rangeStart: number | null = null
+                let prevNr: number | null = null
+
+                // Identify ranges of missed lines
+                for (const ln of sf.line || []) {
+                    if (ln.ci === 0) {
+                        if (rangeStart === null) {
+                            rangeStart = ln.nr
+                        }
+                        prevNr = ln.nr
+                    } else if (rangeStart !== null) {
+                        missedRanges.push({ start: rangeStart, end: prevNr! })
+                        rangeStart = null
+                        prevNr = null
+                    }
+                }
+                if (rangeStart !== null) {
+                    missedRanges.push({ start: rangeStart, end: prevNr! })
+                }
+
+                // Create annotations for each missed range
+                for (const range of missedRanges) {
+
+                    const message = range.start === range.end
+                        ? `Missed coverage on line: ${range.start}`
+                        : `Missed coverage on lines: ${range.start}-${range.end}`
+
+                    annotations.push({
+                        path: filePath,
+                        start_line: range.start,
+                        end_line: range.end,
+                        annotation_level: 'failure',
+                        coverage: 0,
+                        message: message,
+                    })
+                }
+            }
+        }
+    }
+
+    // Calculate overall coverage percentage
+    const totalLines = totalMissed + totalCovered
+    const totalCoverage = totalLines === 0 ? 100 : (totalCovered / totalLines) * 100
+
+    return {
+        totalCoverage,
+        annotations,
+    };
+}

@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 import {computeCoverage} from './computeCoverage'
+import {computeCoverageXML} from './computeCoverageXML'
 
 const KEY_COVERAGE_REPORT_PATH = 'coverage_report_path'
 const IDENTIFIER = '513410c6-a258-11ed-a8fc-0242ac120002'
@@ -15,7 +16,9 @@ async function run(): Promise<void> {
       return
     }
 
-    const totalCoverageInfo = await computeCoverage(coverageReportPath)
+    const totalCoverageInfo = coverageReportPath.endsWith('.xml')
+      ? await computeCoverageXML(coverageReportPath)
+      : await computeCoverage(coverageReportPath)
 
     const token = core.getInput('github_token') || process.env.GITHUB_TOKEN
 
