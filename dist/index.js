@@ -300,6 +300,16 @@ function run() {
                         ' -->';
                     yield octokit.rest.issues.createComment(Object.assign(Object.assign({}, defaultParameter), { issue_number: pullRequest.number, body: commentBody }));
                 }
+                else {
+                    const checkId = checkRequest.data.id;
+                    const commentBody = `:white_check_mark: Overall Project Coverage: ${totalCoverageInfo.totalCoverage.toFixed(2)}% ` +
+                        `https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}` +
+                        '\n' +
+                        '<!--  ' +
+                        IDENTIFIER +
+                        ' -->';
+                    yield octokit.rest.issues.createComment(Object.assign(Object.assign({}, defaultParameter), { issue_number: pullRequest.number, body: commentBody }));
+                }
             }
             if (!isSuccessful) {
                 core.setFailed('❌ Coverage dropped');
