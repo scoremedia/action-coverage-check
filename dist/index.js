@@ -254,6 +254,7 @@ function run() {
             const headSha = (pullRequest && pullRequest.head.sha) || github.context.sha;
             const link = (pullRequest && pullRequest.html_url) || github.context.ref;
             const isSuccessful = totalCoverageInfo.totalCoverage >= 1.0;
+            const totalCoverageStr = (totalCoverageInfo.totalCoverage * 100).toFixed(2);
             const conclusion = isSuccessful
                 ? 'success'
                 : 'failure';
@@ -292,7 +293,7 @@ function run() {
                 }
                 if (!isSuccessful) {
                     const checkId = checkRequest.data.id;
-                    const commentBody = `:x: Uh-oh! Coverage dropped: Overall Project Coverage: ${totalCoverageInfo.totalCoverage.toFixed(2)}% ` +
+                    const commentBody = `:x: Uh-oh! Coverage dropped: Overall Project Coverage: ${totalCoverageStr}% ` +
                         `https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}` +
                         '\n' +
                         '<!--  ' +
@@ -302,7 +303,7 @@ function run() {
                 }
                 else {
                     const checkId = checkRequest.data.id;
-                    const commentBody = `:white_check_mark: Overall Project Coverage: ${totalCoverageInfo.totalCoverage.toFixed(2)}% ` +
+                    const commentBody = `:white_check_mark: Overall Project Coverage: ${totalCoverageStr}% ` +
                         `https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}` +
                         '\n' +
                         '<!--  ' +
