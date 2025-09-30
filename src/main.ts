@@ -30,13 +30,13 @@ async function run(): Promise<void> {
     const pullRequest = github.context.payload.pull_request
     const headSha = (pullRequest && pullRequest.head.sha) || github.context.sha
     const link = (pullRequest && pullRequest.html_url) || github.context.ref
-    const isSuccessful = totalCoverageInfo.totalCoverage >= 0.99
+    const isSuccessful = totalCoverageInfo.totalCoverage >= 1.0
     const conclusion: 'success' | 'failure' = isSuccessful
       ? 'success'
       : 'failure'
     const summary = isSuccessful
-      ? 'Coverage stayed above 99%'
-      : 'Coverage dropped below 99%'
+      ? 'Coverage stayed above 100%'
+      : 'Coverage dropped below 100%'
     const status: 'completed' = 'completed'
     core.info(
       `ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha}`
