@@ -85,7 +85,7 @@ export async function computeCoverageXML(
 
     // Calculate overall coverage percentage
     const totalLines = totalMissed + totalCovered
-    const totalCoverage = totalLines === 0 ? 100 : (totalCovered / totalLines) * 100
+    const totalCoverage = totalLines === 0 ? 1.0 : (totalCovered / totalLines)
 
     return {
         totalCoverage,
