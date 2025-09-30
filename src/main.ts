@@ -91,7 +91,7 @@ async function run(): Promise<void> {
       if (!isSuccessful) {
         const checkId = checkRequest.data.id
         const commentBody =
-          'Uh-oh! Coverage dropped: ' +
+          `:x: Uh-oh! Coverage dropped: Overall Project Coverage: ${totalCoverageInfo.totalCoverage.toFixed(2)}% ` +
           `https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}` +
           '\n' +
           '<!--  ' +
