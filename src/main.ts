@@ -102,6 +102,20 @@ async function run(): Promise<void> {
           issue_number: pullRequest.number,
           body: commentBody
         })
+      } else {
+        const checkId = checkRequest.data.id
+        const commentBody =
+          `:white_check_mark: Overall Project Coverage: ${totalCoverageInfo.totalCoverage.toFixed(2)}% ` +
+          `https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}` +
+          '\n' +
+          '<!--  ' +
+          IDENTIFIER +
+          ' -->'
+        await octokit.rest.issues.createComment({
+          ...defaultParameter,
+          issue_number: pullRequest.number,
+          body: commentBody
+        })
       }
     }
     if (!isSuccessful) {
