@@ -16,8 +16,6 @@ async function run(): Promise<void> {
       return
     }
 
-    core.info(`Coverage report path is xml: ${coverageReportPath.endsWith('.xml')}`)
-
     const totalCoverageInfo = coverageReportPath.endsWith('.xml')
       ? await computeCoverageXML(coverageReportPath)
       : await computeCoverage(coverageReportPath)
