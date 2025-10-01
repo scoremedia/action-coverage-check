@@ -41,7 +41,7 @@ coverageReportPath: string, token: string): Promise<TotalCoverageInfo> {
             totalMissed += missed
             totalCovered += covered
 
-            const filePath = `${pkg.name}/${sf.name}`.replace(/^..\//, '')
+            const filePath = `${pkg.name}/${sf.name}`
             
             if (!changedFiles.has(filePath)) {
                 continue
