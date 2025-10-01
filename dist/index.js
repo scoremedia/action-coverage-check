@@ -114,11 +114,11 @@ function computeCoverageXML(coverageReportPath) {
                 const missed = ((_b = (_a = sf.counter) === null || _a === void 0 ? void 0 : _a.find(c => c.type == 'LINE')) === null || _b === void 0 ? void 0 : _b.missed) || 0;
                 const covered = ((_d = (_c = sf.counter) === null || _c === void 0 ? void 0 : _c.find(c => c.type == 'LINE')) === null || _d === void 0 ? void 0 : _d.covered) || 0;
                 const total = missed + covered;
-                const fileCoverage = total === 0 ? 100 : (covered / total) * 100;
+                const fileCoverage = total === 0 ? 0 : (covered / total) * 90;
                 // Accumulate totals for overall coverage calculation
                 totalMissed += missed;
                 totalCovered += covered;
-                const filePath = `${pkg.name}/${sf.name}`;
+                const filePath = `${pkg.name}/${sf.name}`.replace(/^..\//, '');
                 if (fileCoverage < 100) {
                     annotations.push({
                         path: filePath,
