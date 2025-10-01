@@ -7,7 +7,7 @@ import { convertObjToReport } from './util/jsonObjectToReport'
 import { Report } from './models/jacoco'
 
 export async function computeCoverageXML(
-coverageReportPath: string, token: string): Promise<TotalCoverageInfo> {
+    coverageReportPath: string, token: string): Promise<TotalCoverageInfo> {
     const annotations: Annotation[] = []
 
     // Read and parse the XML coverage report
@@ -26,8 +26,6 @@ coverageReportPath: string, token: string): Promise<TotalCoverageInfo> {
         repo: context.repo.repo,
         pull_number: context.payload.pull_request?.number || 0
     })
-    const changedFiles = new Set(files.map(f => f.filename))
-    core.info(`changed files: ${Array.from(changedFiles).join(', ')}`)
 
     for (const pkg of report.package || []) {
         for (const sf of pkg.sourcefile || []) {
@@ -41,14 +39,13 @@ coverageReportPath: string, token: string): Promise<TotalCoverageInfo> {
             totalMissed += missed
             totalCovered += covered
 
-            const filePath = `${pkg.name}/${sf.name}`
-            
-            if (!changedFiles.has(filePath)) {
-                continue
-            }
-            if (fileCoverage < 90) {
+            const githubFile = files.find(function (f) {
+                return f.filename.endsWith(`${pkg.name}/${sf.name}`);
+            })
+
+            if (githubFile && fileCoverage < 90) {
                 annotations.push({
-                    path: filePath,
+                    path: githubFile.filename,
                     start_line: 1,
                     end_line: 1,
                     annotation_level: 'failure',
@@ -85,7 +82,7 @@ coverageReportPath: string, token: string): Promise<TotalCoverageInfo> {
                         : `Missed coverage on lines: ${range.start}-${range.end}`
 
                     annotations.push({
-                        path: filePath,
+                        path: githubFile.filename,
                         start_line: range.start,
                         end_line: range.end,
                         annotation_level: 'failure',
