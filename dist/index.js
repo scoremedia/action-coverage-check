@@ -263,7 +263,7 @@ function run() {
             const pullRequest = github.context.payload.pull_request;
             const headSha = (pullRequest && pullRequest.head.sha) || github.context.sha;
             const link = (pullRequest && pullRequest.html_url) || github.context.ref;
-            const isSuccessful = totalCoverageInfo.totalCoverage >= 0.8;
+            const isSuccessful = totalCoverageInfo.totalCoverage >= 0.8 && totalCoverageInfo.annotations.length === 0;
             const totalCoverageStr = (totalCoverageInfo.totalCoverage * 100).toFixed(2);
             const conclusion = isSuccessful
                 ? 'success'
