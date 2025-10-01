@@ -6,11 +6,15 @@ import { convertObjToReport } from './util/jsonObjectToReport'
 import { Report } from './models/jacoco'
 
 export async function computeCoverageXML(
-    coverageReportPath: string, token: string): Promise<TotalCoverageInfo> {
+    coverageReportPath: string,
+    token: string
+): Promise<TotalCoverageInfo> {
     const annotations: Annotation[] = []
 
     // Read and parse the XML coverage report
-    const jsonCoverage = await parseStringPromise(readFileSync(coverageReportPath, 'utf-8'));
+    const jsonCoverage = await parseStringPromise(
+        readFileSync(coverageReportPath, 'utf-8')
+    )
 
     // Convert the parsed JSON object to the Report interface
     const report: Report = convertObjToReport(jsonCoverage.report)
@@ -29,8 +33,10 @@ export async function computeCoverageXML(
     for (const pkg of report.package || []) {
         for (const sourceFile of pkg.sourcefile || []) {
             // Calculate file coverage
-            const missed = sourceFile.counter?.find(c => c.type == 'LINE')?.missed || 0
-            const covered = sourceFile.counter?.find(c => c.type == 'LINE')?.covered || 0
+            const missed =
+                sourceFile.counter?.find(c => c.type == 'LINE')?.missed || 0
+            const covered =
+                sourceFile.counter?.find(c => c.type == 'LINE')?.covered || 0
             const total = missed + covered
             const fileCoverage = total === 0 ? 0 : (covered / total) * 100
 
@@ -40,7 +46,7 @@ export async function computeCoverageXML(
 
             // Determine the file path relative to the repository root
             const githubFile = files.find(function (f) {
-                return f.filename.endsWith(`${pkg.name}/${sourceFile.name}`);
+                return f.filename.endsWith(`${pkg.name}/${sourceFile.name}`)
             })
 
             if (githubFile && fileCoverage < 90) {
@@ -50,11 +56,11 @@ export async function computeCoverageXML(
                     end_line: 1,
                     annotation_level: 'failure',
                     coverage: fileCoverage,
-                    message: `Coverage dropped on to: ${fileCoverage.toFixed(2)}% in ${sourceFile.name}`,
+                    message: `Coverage dropped on to: ${fileCoverage.toFixed(2)}% in ${sourceFile.name}`
                 })
 
                 // Group consecutive missed lines and push a single annotation per range
-                const missedRanges: { start: number, end: number }[] = []
+                const missedRanges: { start: number; end: number }[] = []
                 let rangeStart: number | null = null
                 let prevNr: number | null = null
 
@@ -77,9 +83,10 @@ export async function computeCoverageXML(
 
                 // Create annotations for each missed range
                 for (const range of missedRanges) {
-                    const message = range.start === range.end
-                        ? `Missed coverage on line: ${range.start}`
-                        : `Missed coverage on lines: ${range.start}-${range.end}`
+                    const message =
+                        range.start === range.end
+                            ? `Missed coverage on line: ${range.start}`
+                            : `Missed coverage on lines: ${range.start}-${range.end}`
 
                     annotations.push({
                         path: githubFile.filename,
@@ -87,7 +94,7 @@ export async function computeCoverageXML(
                         end_line: range.end,
                         annotation_level: 'failure',
                         coverage: 0,
-                        message: message,
+                        message: message
                     })
                 }
             }
@@ -96,10 +103,10 @@ export async function computeCoverageXML(
 
     // Calculate overall coverage percentage
     const totalLines = totalMissed + totalCovered
-    const totalCoverage = totalLines === 0 ? 1.0 : (totalCovered / totalLines)
+    const totalCoverage = totalLines === 0 ? 1.0 : totalCovered / totalLines
 
     return {
         totalCoverage,
-        annotations,
-    };
+        annotations
+    }
 }

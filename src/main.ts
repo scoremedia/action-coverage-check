@@ -26,19 +26,27 @@ async function run(): Promise<void> {
       core.setFailed('❌ Invalid coverage report format, expected .xml')
     }
 
-    const totalCoverageInfo = await computeCoverageXML(coverageReportPath, token)
+    const totalCoverageInfo = await computeCoverageXML(
+      coverageReportPath,
+      token
+    )
 
     const pullRequest = github.context.payload.pull_request
     const headSha = (pullRequest && pullRequest.head.sha) || github.context.sha
     const link = (pullRequest && pullRequest.html_url) || github.context.ref
-    const isSuccessful = totalCoverageInfo.totalCoverage >= 0.8 && totalCoverageInfo.annotations.length === 0
+    const isSuccessful =
+      totalCoverageInfo.totalCoverage >= 0.8 &&
+      totalCoverageInfo.annotations.length === 0
     const totalCoverageStr = (totalCoverageInfo.totalCoverage * 100).toFixed(2)
     const conclusion: 'success' | 'failure' = isSuccessful
       ? 'success'
       : 'failure'
     const summary = isSuccessful
       ? 'No coverage dropped detected, overall project coverage stayed above 80%.'
-      : 'Coverage dropped detected, ' + (totalCoverageInfo.annotations.length > 0 ? `${totalCoverageInfo.annotations.length} issues found, check annotations` : 'overall project coverage dropped below 80%.')
+      : 'Coverage dropped detected, ' +
+      (totalCoverageInfo.annotations.length > 0
+        ? `${totalCoverageInfo.annotations.length} issues found, check annotations`
+        : 'overall project coverage dropped below 80%.')
     const status: 'completed' = 'completed'
     core.info(
       `ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha}`
