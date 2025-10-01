@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs'
 import { parseStringPromise } from 'xml2js'
 import { context, getOctokit } from '@actions/github'
+import * as core from '@actions/core'
 import { Annotation, TotalCoverageInfo } from './models/action'
 import { convertObjToReport } from './util/jsonObjectToReport'
 import { Report } from './models/jacoco'
@@ -26,6 +27,7 @@ coverageReportPath: string, token: string): Promise<TotalCoverageInfo> {
         pull_number: context.payload.pull_request?.number || 0
     })
     const changedFiles = new Set(files.map(f => f.filename))
+    core.info(`changed files: ${Array.from(changedFiles).join(', ')}`)
 
     for (const pkg of report.package || []) {
         for (const sf of pkg.sourcefile || []) {
@@ -40,6 +42,7 @@ coverageReportPath: string, token: string): Promise<TotalCoverageInfo> {
             totalCovered += covered
 
             const filePath = `${pkg.name}/${sf.name}`.replace(/^..\//, '')
+            
             if (!changedFiles.has(filePath)) {
                 continue
             }
