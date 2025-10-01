@@ -1,12 +1,12 @@
 import { readFileSync } from 'fs'
 import { parseStringPromise } from 'xml2js'
+import { context, getOctokit } from '@actions/github'
 import { Annotation, TotalCoverageInfo } from './models/action'
 import { convertObjToReport } from './util/jsonObjectToReport'
 import { Report } from './models/jacoco'
 
 export async function computeCoverageXML(
-    coverageReportPath: string
-): Promise<TotalCoverageInfo> {
+coverageReportPath: string, token: string): Promise<TotalCoverageInfo> {
     const annotations: Annotation[] = []
 
     // Read and parse the XML coverage report
@@ -17,7 +17,16 @@ export async function computeCoverageXML(
 
     let totalMissed = 0
     let totalCovered = 0
-    
+
+    // Get changed files from the GitHub API
+    const octokit = getOctokit(token)
+    const { data: files } = await octokit.rest.pulls.listFiles({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        pull_number: context.payload.pull_request?.number || 0
+    })
+    const changedFiles = new Set(files.map(f => f.filename))
+
     for (const pkg of report.package || []) {
         for (const sf of pkg.sourcefile || []) {
             // Calculate file coverage
@@ -31,6 +40,9 @@ export async function computeCoverageXML(
             totalCovered += covered
 
             const filePath = `${pkg.name}/${sf.name}`.replace(/^..\//, '')
+            if (!changedFiles.has(filePath)) {
+                continue
+            }
             if (fileCoverage < 90) {
                 annotations.push({
                     path: filePath,
