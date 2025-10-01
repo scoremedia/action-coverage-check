@@ -126,6 +126,7 @@ function computeCoverageXML(coverageReportPath, token) {
                 // Accumulate totals for overall coverage calculation
                 totalMissed += missed;
                 totalCovered += covered;
+                // Determine the file path relative to the repository root
                 const githubFile = files.find(function (f) {
                     return f.filename.endsWith(`${pkg.name}/${sf.name}`);
                 });
@@ -263,14 +264,14 @@ function run() {
             const pullRequest = github.context.payload.pull_request;
             const headSha = (pullRequest && pullRequest.head.sha) || github.context.sha;
             const link = (pullRequest && pullRequest.html_url) || github.context.ref;
-            const isSuccessful = totalCoverageInfo.totalCoverage >= 1.0 && totalCoverageInfo.annotations.length === 0;
+            const isSuccessful = totalCoverageInfo.totalCoverage >= 0.8 && totalCoverageInfo.annotations.length === 0;
             const totalCoverageStr = (totalCoverageInfo.totalCoverage * 100).toFixed(2);
             const conclusion = isSuccessful
                 ? 'success'
                 : 'failure';
             const summary = isSuccessful
-                ? 'Coverage stayed above 80%'
-                : 'Coverage dropped below 80%';
+                ? 'No coverage dropped detected, overall project coverage stayed above 80%.'
+                : 'Coverage dropped detected, ' + (totalCoverageInfo.annotations.length > 0 ? `${totalCoverageInfo.annotations.length} issues found, check annotations` : 'overall project coverage dropped below 80%.');
             const status = 'completed';
             core.info(`ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha}`);
             const title = `${totalCoverageInfo.annotations.length > 50 ? '50 of ' : ''}${totalCoverageInfo.annotations.length} coverage issues:`;
