@@ -39,6 +39,7 @@ export async function computeCoverageXML(
             totalMissed += missed
             totalCovered += covered
 
+            // Determine the file path relative to the repository root
             const githubFile = files.find(function (f) {
                 return f.filename.endsWith(`${pkg.name}/${sf.name}`);
             })
