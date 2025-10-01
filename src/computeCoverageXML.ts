@@ -1,7 +1,6 @@
 import { readFileSync } from 'fs'
 import { parseStringPromise } from 'xml2js'
 import { context, getOctokit } from '@actions/github'
-import * as core from '@actions/core'
 import { Annotation, TotalCoverageInfo } from './models/action'
 import { convertObjToReport } from './util/jsonObjectToReport'
 import { Report } from './models/jacoco'
@@ -28,10 +27,10 @@ export async function computeCoverageXML(
     })
 
     for (const pkg of report.package || []) {
-        for (const sf of pkg.sourcefile || []) {
+        for (const sourceFile of pkg.sourcefile || []) {
             // Calculate file coverage
-            const missed = sf.counter?.find(c => c.type == 'LINE')?.missed || 0
-            const covered = sf.counter?.find(c => c.type == 'LINE')?.covered || 0
+            const missed = sourceFile.counter?.find(c => c.type == 'LINE')?.missed || 0
+            const covered = sourceFile.counter?.find(c => c.type == 'LINE')?.covered || 0
             const total = missed + covered
             const fileCoverage = total === 0 ? 0 : (covered / total) * 100
 
@@ -41,7 +40,7 @@ export async function computeCoverageXML(
 
             // Determine the file path relative to the repository root
             const githubFile = files.find(function (f) {
-                return f.filename.endsWith(`${pkg.name}/${sf.name}`);
+                return f.filename.endsWith(`${pkg.name}/${sourceFile.name}`);
             })
 
             if (githubFile && fileCoverage < 90) {
@@ -51,7 +50,7 @@ export async function computeCoverageXML(
                     end_line: 1,
                     annotation_level: 'failure',
                     coverage: fileCoverage,
-                    message: `Coverage dropped on to: ${fileCoverage.toFixed(2)}% in ${sf.name}`,
+                    message: `Coverage dropped on to: ${fileCoverage.toFixed(2)}% in ${sourceFile.name}`,
                 })
 
                 // Group consecutive missed lines and push a single annotation per range
@@ -60,7 +59,7 @@ export async function computeCoverageXML(
                 let prevNr: number | null = null
 
                 // Identify ranges of missed lines
-                for (const ln of sf.line || []) {
+                for (const ln of sourceFile.line || []) {
                     if (ln.ci === 0) {
                         if (rangeStart === null) {
                             rangeStart = ln.nr

@@ -1,6 +1,5 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import { computeCoverage } from './computeCoverage'
 import { computeCoverageXML } from './computeCoverageXML'
 
 const KEY_COVERAGE_REPORT_PATH = 'coverage_report_path'
@@ -23,9 +22,11 @@ async function run(): Promise<void> {
       return
     }
 
-    const totalCoverageInfo = coverageReportPath.endsWith('.xml')
-      ? await computeCoverageXML(coverageReportPath, token)
-      : await computeCoverage(coverageReportPath)
+    if (!coverageReportPath.endsWith('.xml')) {
+      core.setFailed('❌ Invalid coverage report format, expected .xml')
+    }
+
+    const totalCoverageInfo = await computeCoverageXML(coverageReportPath, token)
 
     const pullRequest = github.context.payload.pull_request
     const headSha = (pullRequest && pullRequest.head.sha) || github.context.sha
