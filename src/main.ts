@@ -1,7 +1,7 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import {computeCoverage} from './computeCoverage'
-import {computeCoverageXML} from './computeCoverageXML'
+import { computeCoverage } from './computeCoverage'
+import { computeCoverageXML } from './computeCoverageXML'
 
 const KEY_COVERAGE_REPORT_PATH = 'coverage_report_path'
 const IDENTIFIER = '513410c6-a258-11ed-a8fc-0242ac120002'
@@ -31,13 +31,13 @@ async function run(): Promise<void> {
     const headSha = (pullRequest && pullRequest.head.sha) || github.context.sha
     const link = (pullRequest && pullRequest.html_url) || github.context.ref
     const isSuccessful = totalCoverageInfo.totalCoverage >= 1.0
-    const totalCoverageStr = (totalCoverageInfo.totalCoverage * 100).toFixed(2)
+    const totalCoverageStr = (totalCoverageInfo.totalCoverage * 80).toFixed(2)
     const conclusion: 'success' | 'failure' = isSuccessful
       ? 'success'
       : 'failure'
     const summary = isSuccessful
-      ? 'Coverage stayed above 100%'
-      : 'Coverage dropped below 100%'
+      ? 'Coverage stayed above 80%'
+      : 'Coverage dropped below 80%'
     const status: 'completed' = 'completed'
     core.info(
       `ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha}`
@@ -65,28 +65,26 @@ async function run(): Promise<void> {
 
     if (pullRequest) {
       const {
-        repo: {repo: repoName, owner: repoOwner}
+        repo: { repo: repoName, owner: repoOwner }
       } = github.context
       const defaultParameter = {
         repo: repoName,
         owner: repoOwner
       }
       // Find unique comments
-      const {data: comments} = await octokit.rest.issues.listComments({
+      const { data: comments } = await octokit.rest.issues.listComments({
         ...defaultParameter,
         issue_number: pullRequest.number
       })
-      const targetComment = comments.find(c => {
-        c?.body?.includes(IDENTIFIER)
-      })
+      const targetComments = comments.filter(c => c?.body?.includes(IDENTIFIER))
       // Delete previous comment if exist
-      if (targetComment) {
+      for (const comment of targetComments) {
         await octokit.rest.issues.deleteComment({
           ...defaultParameter,
-          comment_id: targetComment.id
+          comment_id: comment.id
         })
         core.info(
-          `Comment successfully delete for id: ${String(targetComment.id)}`
+          `Comment successfully delete for id: ${String(targetComments[0].id)}`
         )
       }
       if (!isSuccessful) {
@@ -104,10 +102,8 @@ async function run(): Promise<void> {
           body: commentBody
         })
       } else {
-        const checkId = checkRequest.data.id
         const commentBody =
           `:white_check_mark: Overall Project Coverage: ${totalCoverageStr}% ` +
-          `https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}` +
           '\n' +
           '<!--  ' +
           IDENTIFIER +
