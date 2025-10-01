@@ -1,84 +1,6 @@
 require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 4572:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.computeCoverage = computeCoverage;
-const fs_1 = __nccwpck_require__(7147);
-function computeCoverage(coverageReportPath) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const annotations = [];
-        const coverageDataStr = yield fs_1.promises.readFile(coverageReportPath, 'utf8');
-        const coverageData = JSON.parse(coverageDataStr);
-        for (const sourceFile of coverageData.source_files) {
-            if (sourceFile.coverage.filter(coverageValue => coverageValue === 0).length <=
-                0)
-                continue;
-            const missed = sourceFile.coverage.filter(coverageValue => coverageValue === 0).length;
-            const total = sourceFile.coverage.filter(coverageValue => coverageValue === null).length;
-            const computedCoverage = (total === 0 ? 1.0 : (total - missed) / total) * 100;
-            const filePath = sourceFile.name.replace(/^..\//, '');
-            const filename = sourceFile.name.replace(/^.*[\\/]/, '');
-            const coverageDroppedMessage = `• Coverage dropped to ${computedCoverage.toFixed(2)}% in ${filename}`;
-            annotations.push({
-                path: filePath,
-                start_line: 1,
-                end_line: 1,
-                annotation_level: 'failure',
-                coverage: computedCoverage,
-                message: coverageDroppedMessage
-            });
-            for (let index = 0; index < sourceFile.coverage.length; index++) {
-                if (sourceFile.coverage[index] === 0) {
-                    // coverage array is 0-indexed.
-                    // We'll need to adjust these by
-                    // +1 to get line numbers.
-                    const coverageMissedStartIndex = index;
-                    let coverageMissedEndIndex = index;
-                    while (coverageMissedEndIndex + 1 < sourceFile.coverage.length &&
-                        sourceFile.coverage[coverageMissedEndIndex + 1] === 0) {
-                        coverageMissedEndIndex++;
-                    }
-                    let coverageMissedMessage = '- Missed coverage';
-                    if (coverageMissedEndIndex > coverageMissedStartIndex) {
-                        coverageMissedMessage += ` between lines ${coverageMissedStartIndex + 1} and ${coverageMissedEndIndex + 1}`;
-                    }
-                    else {
-                        coverageMissedMessage += ` on line ${coverageMissedStartIndex + 1}`;
-                    }
-                    annotations.push({
-                        path: filePath,
-                        start_line: coverageMissedStartIndex + 1,
-                        end_line: coverageMissedEndIndex + 1,
-                        annotation_level: 'failure',
-                        coverage: computedCoverage,
-                        message: coverageMissedMessage
-                    });
-                    index = coverageMissedEndIndex;
-                }
-            }
-        }
-        const totalCoverage = annotations.reduce((accumulator, current_value) => accumulator + current_value.coverage, 0);
-        return { totalCoverage, annotations };
-    });
-}
-
-
-/***/ }),
-
 /***/ 2315:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -117,10 +39,10 @@ function computeCoverageXML(coverageReportPath, token) {
             pull_number: ((_a = github_1.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number) || 0
         });
         for (const pkg of report.package || []) {
-            for (const sf of pkg.sourcefile || []) {
+            for (const sourceFile of pkg.sourcefile || []) {
                 // Calculate file coverage
-                const missed = ((_c = (_b = sf.counter) === null || _b === void 0 ? void 0 : _b.find(c => c.type == 'LINE')) === null || _c === void 0 ? void 0 : _c.missed) || 0;
-                const covered = ((_e = (_d = sf.counter) === null || _d === void 0 ? void 0 : _d.find(c => c.type == 'LINE')) === null || _e === void 0 ? void 0 : _e.covered) || 0;
+                const missed = ((_c = (_b = sourceFile.counter) === null || _b === void 0 ? void 0 : _b.find(c => c.type == 'LINE')) === null || _c === void 0 ? void 0 : _c.missed) || 0;
+                const covered = ((_e = (_d = sourceFile.counter) === null || _d === void 0 ? void 0 : _d.find(c => c.type == 'LINE')) === null || _e === void 0 ? void 0 : _e.covered) || 0;
                 const total = missed + covered;
                 const fileCoverage = total === 0 ? 0 : (covered / total) * 100;
                 // Accumulate totals for overall coverage calculation
@@ -128,7 +50,7 @@ function computeCoverageXML(coverageReportPath, token) {
                 totalCovered += covered;
                 // Determine the file path relative to the repository root
                 const githubFile = files.find(function (f) {
-                    return f.filename.endsWith(`${pkg.name}/${sf.name}`);
+                    return f.filename.endsWith(`${pkg.name}/${sourceFile.name}`);
                 });
                 if (githubFile && fileCoverage < 90) {
                     annotations.push({
@@ -137,14 +59,14 @@ function computeCoverageXML(coverageReportPath, token) {
                         end_line: 1,
                         annotation_level: 'failure',
                         coverage: fileCoverage,
-                        message: `Coverage dropped on to: ${fileCoverage.toFixed(2)}% in ${sf.name}`,
+                        message: `Coverage dropped on to: ${fileCoverage.toFixed(2)}% in ${sourceFile.name}`,
                     });
                     // Group consecutive missed lines and push a single annotation per range
                     const missedRanges = [];
                     let rangeStart = null;
                     let prevNr = null;
                     // Identify ranges of missed lines
-                    for (const ln of sf.line || []) {
+                    for (const ln of sourceFile.line || []) {
                         if (ln.ci === 0) {
                             if (rangeStart === null) {
                                 rangeStart = ln.nr;
@@ -240,7 +162,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
-const computeCoverage_1 = __nccwpck_require__(4572);
 const computeCoverageXML_1 = __nccwpck_require__(2315);
 const KEY_COVERAGE_REPORT_PATH = 'coverage_report_path';
 const IDENTIFIER = '513410c6-a258-11ed-a8fc-0242ac120002';
@@ -258,9 +179,10 @@ function run() {
                 core.setFailed('❌ Missing Github token');
                 return;
             }
-            const totalCoverageInfo = coverageReportPath.endsWith('.xml')
-                ? yield (0, computeCoverageXML_1.computeCoverageXML)(coverageReportPath, token)
-                : yield (0, computeCoverage_1.computeCoverage)(coverageReportPath);
+            if (!coverageReportPath.endsWith('.xml')) {
+                core.setFailed('❌ Invalid coverage report format, expected .xml');
+            }
+            const totalCoverageInfo = yield (0, computeCoverageXML_1.computeCoverageXML)(coverageReportPath, token);
             const pullRequest = github.context.payload.pull_request;
             const headSha = (pullRequest && pullRequest.head.sha) || github.context.sha;
             const link = (pullRequest && pullRequest.html_url) || github.context.ref;
