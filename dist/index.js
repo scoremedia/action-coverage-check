@@ -263,7 +263,7 @@ function run() {
             const pullRequest = github.context.payload.pull_request;
             const headSha = (pullRequest && pullRequest.head.sha) || github.context.sha;
             const link = (pullRequest && pullRequest.html_url) || github.context.ref;
-            const isSuccessful = totalCoverageInfo.totalCoverage >= 0.8 && totalCoverageInfo.annotations.length === 0;
+            const isSuccessful = totalCoverageInfo.totalCoverage >= 1.0 && totalCoverageInfo.annotations.length === 0;
             const totalCoverageStr = (totalCoverageInfo.totalCoverage * 100).toFixed(2);
             const conclusion = isSuccessful
                 ? 'success'
@@ -300,7 +300,7 @@ function run() {
                 }
                 if (!isSuccessful) {
                     const checkId = checkRequest.data.id;
-                    const commentBody = `:x: Uh-oh! Coverage dropped: ` +
+                    const commentBody = `:x: Uh-oh! ${totalCoverageInfo.annotations.length > 0 ? `Coverage dropped on changed files: ${totalCoverageInfo.annotations.length} issues found.` : 'Overall project coverage dropped:'} ` +
                         `https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}` +
                         `\nOverall Project Coverage: ${totalCoverageStr}% ` +
                         '\n' +
