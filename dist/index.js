@@ -97,10 +97,11 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.computeCoverageXML = computeCoverageXML;
 const fs_1 = __nccwpck_require__(7147);
 const xml2js_1 = __nccwpck_require__(6189);
+const github_1 = __nccwpck_require__(5438);
 const jsonObjectToReport_1 = __nccwpck_require__(3999);
-function computeCoverageXML(coverageReportPath) {
+function computeCoverageXML(coverageReportPath, token) {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         const annotations = [];
         // Read and parse the XML coverage report
         const jsonCoverage = yield (0, xml2js_1.parseStringPromise)((0, fs_1.readFileSync)(coverageReportPath, 'utf-8'));
@@ -108,17 +109,28 @@ function computeCoverageXML(coverageReportPath) {
         const report = (0, jsonObjectToReport_1.convertObjToReport)(jsonCoverage.report);
         let totalMissed = 0;
         let totalCovered = 0;
+        // Get changed files from the GitHub API
+        const octokit = (0, github_1.getOctokit)(token);
+        const { data: files } = yield octokit.rest.pulls.listFiles({
+            owner: github_1.context.repo.owner,
+            repo: github_1.context.repo.repo,
+            pull_number: ((_a = github_1.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number) || 0
+        });
+        const changedFiles = new Set(files.map(f => f.filename));
         for (const pkg of report.package || []) {
             for (const sf of pkg.sourcefile || []) {
                 // Calculate file coverage
-                const missed = ((_b = (_a = sf.counter) === null || _a === void 0 ? void 0 : _a.find(c => c.type == 'LINE')) === null || _b === void 0 ? void 0 : _b.missed) || 0;
-                const covered = ((_d = (_c = sf.counter) === null || _c === void 0 ? void 0 : _c.find(c => c.type == 'LINE')) === null || _d === void 0 ? void 0 : _d.covered) || 0;
+                const missed = ((_c = (_b = sf.counter) === null || _b === void 0 ? void 0 : _b.find(c => c.type == 'LINE')) === null || _c === void 0 ? void 0 : _c.missed) || 0;
+                const covered = ((_e = (_d = sf.counter) === null || _d === void 0 ? void 0 : _d.find(c => c.type == 'LINE')) === null || _e === void 0 ? void 0 : _e.covered) || 0;
                 const total = missed + covered;
                 const fileCoverage = total === 0 ? 0 : (covered / total) * 100;
                 // Accumulate totals for overall coverage calculation
                 totalMissed += missed;
                 totalCovered += covered;
                 const filePath = `${pkg.name}/${sf.name}`.replace(/^..\//, '');
+                if (!changedFiles.has(filePath)) {
+                    continue;
+                }
                 if (fileCoverage < 90) {
                     annotations.push({
                         path: filePath,
@@ -242,14 +254,14 @@ function run() {
                 core.setFailed('❌ Coverage report path not provided');
                 return;
             }
-            const totalCoverageInfo = coverageReportPath.endsWith('.xml')
-                ? yield (0, computeCoverageXML_1.computeCoverageXML)(coverageReportPath)
-                : yield (0, computeCoverage_1.computeCoverage)(coverageReportPath);
             const token = core.getInput('github_token') || process.env.GITHUB_TOKEN;
             if (!token) {
                 core.setFailed('❌ Missing Github token');
                 return;
             }
+            const totalCoverageInfo = coverageReportPath.endsWith('.xml')
+                ? yield (0, computeCoverageXML_1.computeCoverageXML)(coverageReportPath, token)
+                : yield (0, computeCoverage_1.computeCoverage)(coverageReportPath);
             const pullRequest = github.context.payload.pull_request;
             const headSha = (pullRequest && pullRequest.head.sha) || github.context.sha;
             const link = (pullRequest && pullRequest.html_url) || github.context.ref;
