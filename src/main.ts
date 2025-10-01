@@ -16,16 +16,16 @@ async function run(): Promise<void> {
       return
     }
 
-    const totalCoverageInfo = coverageReportPath.endsWith('.xml')
-      ? await computeCoverageXML(coverageReportPath)
-      : await computeCoverage(coverageReportPath)
-
     const token = core.getInput('github_token') || process.env.GITHUB_TOKEN
 
     if (!token) {
       core.setFailed('❌ Missing Github token')
       return
     }
+
+    const totalCoverageInfo = coverageReportPath.endsWith('.xml')
+      ? await computeCoverageXML(coverageReportPath, token)
+      : await computeCoverage(coverageReportPath)
 
     const pullRequest = github.context.payload.pull_request
     const headSha = (pullRequest && pullRequest.head.sha) || github.context.sha
