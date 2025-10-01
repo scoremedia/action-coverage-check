@@ -24,13 +24,13 @@ export async function computeCoverageXML(
             const missed = sf.counter?.find(c => c.type == 'LINE')?.missed || 0
             const covered = sf.counter?.find(c => c.type == 'LINE')?.covered || 0
             const total = missed + covered
-            const fileCoverage = total === 0 ? 100 : (covered / total) * 100
+            const fileCoverage = total === 0 ? 0 : (covered / total) * 90
 
             // Accumulate totals for overall coverage calculation
             totalMissed += missed
             totalCovered += covered
 
-            const filePath = `${pkg.name}/${sf.name}`
+            const filePath = `${pkg.name}/${sf.name}`.replace(/^..\//, '')
             if (fileCoverage < 100) {
                 annotations.push({
                     path: filePath,
@@ -65,7 +65,6 @@ export async function computeCoverageXML(
 
                 // Create annotations for each missed range
                 for (const range of missedRanges) {
-
                     const message = range.start === range.end
                         ? `Missed coverage on line: ${range.start}`
                         : `Missed coverage on lines: ${range.start}-${range.end}`
