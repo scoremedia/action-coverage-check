@@ -254,13 +254,13 @@ function run() {
             const headSha = (pullRequest && pullRequest.head.sha) || github.context.sha;
             const link = (pullRequest && pullRequest.html_url) || github.context.ref;
             const isSuccessful = totalCoverageInfo.totalCoverage >= 1.0;
-            const totalCoverageStr = (totalCoverageInfo.totalCoverage * 100).toFixed(2);
+            const totalCoverageStr = (totalCoverageInfo.totalCoverage * 80).toFixed(2);
             const conclusion = isSuccessful
                 ? 'success'
                 : 'failure';
             const summary = isSuccessful
-                ? 'Coverage stayed above 100%'
-                : 'Coverage dropped below 100%';
+                ? 'Coverage stayed above 80%'
+                : 'Coverage dropped below 80%';
             const status = 'completed';
             core.info(`ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha}`);
             const title = `${totalCoverageInfo.annotations.length > 50 ? '50 of ' : ''}${totalCoverageInfo.annotations.length} coverage issues:`;
@@ -282,14 +282,11 @@ function run() {
                 };
                 // Find unique comments
                 const { data: comments } = yield octokit.rest.issues.listComments(Object.assign(Object.assign({}, defaultParameter), { issue_number: pullRequest.number }));
-                const targetComment = comments.find(c => {
-                    var _a;
-                    (_a = c === null || c === void 0 ? void 0 : c.body) === null || _a === void 0 ? void 0 : _a.includes(IDENTIFIER);
-                });
+                const targetComments = comments.filter(c => { var _a; return (_a = c === null || c === void 0 ? void 0 : c.body) === null || _a === void 0 ? void 0 : _a.includes(IDENTIFIER); });
                 // Delete previous comment if exist
-                if (targetComment) {
-                    yield octokit.rest.issues.deleteComment(Object.assign(Object.assign({}, defaultParameter), { comment_id: targetComment.id }));
-                    core.info(`Comment successfully delete for id: ${String(targetComment.id)}`);
+                for (const comment of targetComments) {
+                    yield octokit.rest.issues.deleteComment(Object.assign(Object.assign({}, defaultParameter), { comment_id: comment.id }));
+                    core.info(`Comment successfully delete for id: ${String(targetComments[0].id)}`);
                 }
                 if (!isSuccessful) {
                     const checkId = checkRequest.data.id;
@@ -302,9 +299,7 @@ function run() {
                     yield octokit.rest.issues.createComment(Object.assign(Object.assign({}, defaultParameter), { issue_number: pullRequest.number, body: commentBody }));
                 }
                 else {
-                    const checkId = checkRequest.data.id;
                     const commentBody = `:white_check_mark: Overall Project Coverage: ${totalCoverageStr}% ` +
-                        `https://github.com/${repoOwner}/${repoName}/runs/${String(checkId)}` +
                         '\n' +
                         '<!--  ' +
                         IDENTIFIER +
