@@ -162,7 +162,7 @@ function computeCoverageXML(coverageReportPath, token) {
                 // Accumulate totals for overall coverage calculation
                 totalMissed += missed;
                 totalCovered += covered;
-                const filePath = `${pkg.name}/${sf.name}`.replace(/^..\//, '');
+                const filePath = `${pkg.name}/${sf.name}`;
                 if (!changedFiles.has(filePath)) {
                     continue;
                 }
