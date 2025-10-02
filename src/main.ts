@@ -1,6 +1,6 @@
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import { computeCoverageXML } from './computeCoverageXML'
+import {computeCoverageXML} from './computeCoverageXML'
 
 const KEY_COVERAGE_REPORT_PATH = 'coverage_report_path'
 const IDENTIFIER = '513410c6-a258-11ed-a8fc-0242ac120002'
@@ -44,10 +44,10 @@ async function run(): Promise<void> {
     const summary = isSuccessful
       ? 'No coverage dropped detected, overall project coverage stayed above 80%.'
       : 'Coverage dropped detected, ' +
-      (totalCoverageInfo.annotations.length > 0
-        ? `${totalCoverageInfo.annotations.length} issues found, check annotations`
-        : 'overall project coverage dropped below 80%.')
-    const status: 'completed' = 'completed'
+        (totalCoverageInfo.annotations.length > 0
+          ? `${totalCoverageInfo.annotations.length} issues found, check annotations`
+          : 'overall project coverage dropped below 80%.')
+    const status = 'completed'
     core.info(
       `ℹ️ Posting status '${status}' with conclusion '${conclusion}' to ${link} (sha: ${headSha}`
     )
@@ -74,14 +74,14 @@ async function run(): Promise<void> {
 
     if (pullRequest) {
       const {
-        repo: { repo: repoName, owner: repoOwner }
+        repo: {repo: repoName, owner: repoOwner}
       } = github.context
       const defaultParameter = {
         repo: repoName,
         owner: repoOwner
       }
       // Find unique comments
-      const { data: comments } = await octokit.rest.issues.listComments({
+      const {data: comments} = await octokit.rest.issues.listComments({
         ...defaultParameter,
         issue_number: pullRequest.number
       })
@@ -92,9 +92,7 @@ async function run(): Promise<void> {
           ...defaultParameter,
           comment_id: comment.id
         })
-        core.info(
-          `Comment successfully delete for id: ${String(comment.id)}`
-        )
+        core.info(`Comment successfully delete for id: ${String(comment.id)}`)
       }
       if (!isSuccessful) {
         const checkId = checkRequest.data.id
