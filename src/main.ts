@@ -93,7 +93,7 @@ async function run(): Promise<void> {
           comment_id: comment.id
         })
         core.info(
-          `Comment successfully delete for id: ${String(targetComments[0].id)}`
+          `Comment successfully delete for id: ${String(comment.id)}`
         )
       }
       if (!isSuccessful) {
