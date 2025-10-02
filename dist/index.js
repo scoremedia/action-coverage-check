@@ -285,9 +285,9 @@ function getPackage(obj) {
                         name: m['$'].name,
                         desc: m['$'].desc,
                         line: m['$'].line ? Number(m['$'].line) : undefined,
-                        counter: getCounter(m),
+                        counter: getCounter(m)
                     })),
-                    counter: getCounter(cls),
+                    counter: getCounter(cls)
                 });
             }),
             sourcefile: (_b = pkg.sourcefile) === null || _b === void 0 ? void 0 : _b.map((sf) => {
@@ -299,12 +299,12 @@ function getPackage(obj) {
                         mi: ln['$'].mi ? Number(ln['$'].mi) : undefined,
                         ci: ln['$'].ci ? Number(ln['$'].ci) : undefined,
                         mb: ln['$'].mb ? Number(ln['$'].mb) : undefined,
-                        cb: ln['$'].cb ? Number(ln['$'].cb) : undefined,
+                        cb: ln['$'].cb ? Number(ln['$'].cb) : undefined
                     })),
-                    counter: getCounter(sf),
+                    counter: getCounter(sf)
                 });
             }),
-            counter: getCounter(pkg),
+            counter: getCounter(pkg)
         });
     });
 }
@@ -313,14 +313,14 @@ function getCounter(obj) {
     return (_a = obj.counter) === null || _a === void 0 ? void 0 : _a.map((c) => ({
         type: c['$'].type,
         missed: Number(c['$'].missed),
-        covered: Number(c['$'].covered),
+        covered: Number(c['$'].covered)
     }));
 }
 function convertObjToReport(obj) {
     return {
         name: obj['$'].name,
         package: getPackage(obj),
-        counter: getCounter(obj),
+        counter: getCounter(obj)
     };
 }
 
