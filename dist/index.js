@@ -223,7 +223,7 @@ function run() {
                 // Delete previous comment if exist
                 for (const comment of targetComments) {
                     yield octokit.rest.issues.deleteComment(Object.assign(Object.assign({}, defaultParameter), { comment_id: comment.id }));
-                    core.info(`Comment successfully delete for id: ${String(targetComments[0].id)}`);
+                    core.info(`Comment successfully delete for id: ${String(comment.id)}`);
                 }
                 if (!isSuccessful) {
                     const checkId = checkRequest.data.id;
