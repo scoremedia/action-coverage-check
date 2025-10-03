@@ -65,8 +65,7 @@ export async function computeCoverageXML(
         let prevNr: number | null = null
 
         // Identify ranges of missed lines
-        const lines = sourceFile.line || []
-        for (const line of lines) {
+        for (const line of sourceFile.line || []) {
           if (line.ci === 0) {
             if (rangeStart === null) {
               rangeStart = line.nr
