@@ -66,12 +66,14 @@ function computeCoverageXML(coverageReportPath, token) {
                     let rangeStart = null;
                     let prevNr = null;
                     // Identify ranges of missed lines
-                    for (const ln of sourceFile.line || []) {
-                        if (ln.ci === 0) {
+                    const lines = sourceFile.line || [];
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        if (line.ci === 0 && line.nr === (prevNr || 0) + 1) {
                             if (rangeStart === null) {
-                                rangeStart = ln.nr;
+                                rangeStart = line.nr;
                             }
-                            prevNr = ln.nr;
+                            prevNr = line.nr;
                         }
                         else if (rangeStart !== null) {
                             missedRanges.push({ start: rangeStart, end: prevNr });
