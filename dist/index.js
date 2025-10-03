@@ -69,7 +69,7 @@ function computeCoverageXML(coverageReportPath, token) {
                     const lines = sourceFile.line || [];
                     for (let i = 0; i < lines.length; i++) {
                         const line = lines[i];
-                        if (line.ci === 0 && line.nr === (prevNr || 0) + 1) {
+                        if (line.ci === 0 && line.nr === (prevNr || -1) + 1) {
                             if (rangeStart === null) {
                                 rangeStart = line.nr;
                             }
